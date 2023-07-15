@@ -193,11 +193,12 @@ class TorchDevice:
     def delete(self, tensor):
         pass
 
+    # load kv cache to self.attention_compute_workspace
     def init_attention_compute_workspace(self, config, task, policy):
         if self.device_type != DeviceType.CPU:
             return  # Only CPU requires this fp32 workspace
 
-        if not policy.compress_cache:
+        if not policy.compress_cache: # not using compress
             b = policy.gpu_batch_size
             n_head = config.n_head
             head_dim = config.input_dim // n_head

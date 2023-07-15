@@ -36,6 +36,14 @@ class Policy:
     num_gpu_batches: int
 
     # percent = a means a%
+    """
+    the percentage of weight on GPU, 
+    the percentage of weight on CPU, 
+    the percentage of attention cache on GPU, 
+    the percentage of attention cache on CPU, 
+    the percentage of activations on GPU, 
+    the percentage of activations on CPU
+    """
     w_gpu_percent: float
     w_cpu_percent: float
     cache_gpu_percent: float
@@ -76,6 +84,7 @@ class Policy:
 
     @property
     def act_disk_percent(self):
+        # input parameter only contains cpu&gpu, the rest of it goes on disk.
         return 100 - self.act_gpu_percent - self.act_cpu_percent
 
 
@@ -638,6 +647,7 @@ class OptLM:
 
     def set_task(self, task):
         self.task = task
+        # set task to each layer to realize cascade-level scheduling
         for l in self.layers:
             l.set_task(task)
 
@@ -822,6 +832,7 @@ class OptLM:
         val.load_from_np((input_ids != self.config.pad_token_id))
         self.attention_mask[k].store(val)
 
+    # generate response: similar as the transformer.generate
     def generate(self,
                  inputs: Union[np.array, List[List[int]]],
                  max_new_tokens: int = 32,
@@ -845,6 +856,7 @@ class OptLM:
         gpu_batch_size = self.policy.gpu_batch_size
         overlap = self.policy.overlap
         prompt_len, gen_len = task.prompt_len, task.gen_len
+        # generate length
         self.execute_gen_len = task.cut_gen_len if task.cut_gen_len else task.gen_len
 
         # Output token ids
@@ -854,11 +866,11 @@ class OptLM:
         self.output_ids[:, :prompt_len] = np.asarray(task.inputs)
         assert gpu_batch_size * num_gpu_batches == len(task.inputs)
 
-        # Intermediate tensors
+        # Intermediate tensors: generate buffers to hold the intermediate tensors
         # The following buffers store values used
         # for the i-th token, j-th layer, k-th gpu batch.
         num_layers, num_gpu_batches = self.num_layers, self.policy.num_gpu_batches
-        for j in range(num_layers):
+        for j in range(num_layers):  # clear each layer/batch:set the value to zero
             for k in range(num_gpu_batches):
                 self.cache_home[j][k].clear()
                 self.cache_read_buf[j][k].clear()
@@ -909,8 +921,9 @@ class OptLM:
 
         return self.output_ids
 
+    # generate without overlap:
     def generation_loop_normal(self):
-        for i in range(self.execute_gen_len):
+        for i in range(self.execute_gen_len):  # iteration
             timers("generate").start()
             for k in range(self.num_gpu_batches):
                 self.update_attention_mask(i, k)
@@ -1189,6 +1202,7 @@ def run_flexgen(args):
     warmup_inputs = get_test_inputs(32, num_prompts, tokenizer)
     inputs = get_test_inputs(prompt_len, num_prompts, tokenizer)
 
+    # wrap the torch.device
     gpu = TorchDevice("cuda:0")
     cpu = TorchDevice("cpu")
     disk = TorchDisk(args.offload_dir)
@@ -1208,6 +1222,7 @@ def run_flexgen(args):
                                       group_dim=2, symmetric=False))
     assert not (args.compress_cache and args.attn_sparsity < 1.0), "Not implemented"
 
+    # Calculate the size of each part would use: model weight size; cache size; hidden size;
     opt_config = get_opt_config(args.model)
     cache_size = opt_config.cache_bytes(num_prompts, prompt_len + gen_len)
     hidden_size = opt_config.hidden_bytes(num_prompts, prompt_len + gen_len)
