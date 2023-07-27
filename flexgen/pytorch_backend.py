@@ -193,7 +193,7 @@ class TorchDevice:
     def delete(self, tensor):
         pass
 
-    # load kv cache to self.attention_compute_workspace
+    # load kv cache to self.attention_compute_workspace for cpu computing attention
     def init_attention_compute_workspace(self, config, task, policy):
         if self.device_type != DeviceType.CPU:
             return  # Only CPU requires this fp32 workspace
@@ -317,6 +317,7 @@ class TorchDevice:
         k = F.linear(hidden, w_k.data, bias=b_k.data)
         v = F.linear(hidden, w_v.data, bias=b_v.data)
         # shape: (b, s, n_head, head_dim)
+        # using np.view to wrap a view object for data access
         q = q.view(b, s, n_head, head_dim)
         k = k.view(b, s, n_head, head_dim)
         v = v.view(b, s, n_head, head_dim)
@@ -620,7 +621,10 @@ class TorchDevice:
 
 
 class TorchDisk:
-    """Manage tensors stored on a disk."""
+    """
+    Manage tensors stored on a disk.
+    Using multi-thread to copy
+    """
 
     def __init__(self, path, mem_capacity=None, cuda_id=0, num_copy_threads=4):
         self.name = path
@@ -866,7 +870,10 @@ def cut_indices(indices, start, stop, base=0):
 
 def map_to_torch_tensor(tensor, indices):
     if tensor.device.device_type == DeviceType.DISK:
-        data = torch.from_numpy(np.lib.format.open_memmap(tensor.data))
+        data = torch.from_numpy(
+            # memmap允许将大文件分成小段进行读写，而不是一次性将整个数组读入内存
+            np.lib.format.open_memmap(tensor.data)
+        )
     else:
         data = tensor.data
 
@@ -878,10 +885,10 @@ def map_to_torch_tensor(tensor, indices):
 
 def copy_worker_func(queue, cuda_id):
     """The copy worker thread."""
-    torch.cuda.set_device(cuda_id)
+    torch.cuda.set_device(cuda_id)  # indicate which gpu to use
 
     cpu_buf = torch.empty((1 * GB,), dtype=torch.float16, pin_memory=True)
-    copy_stream = torch.cuda.Stream()
+    copy_stream = torch.cuda.Stream()  # using cuda stream to copy weights/tensors
 
     with torch.cuda.stream(copy_stream):
         while True:
@@ -897,6 +904,7 @@ def copy_worker_func(queue, cuda_id):
             if (src.device.device_type == DeviceType.CUDA or
                 dst.device.device_type == DeviceType.CUDA):
                 # Use a pinned cpu buffer as a relay
+                # np.prod: return the multiplication of the data
                 size = np.prod(src_data.shape)
                 tmp_cpu_buf = cpu_buf[:size].view(src_data.shape)
                 tmp_cpu_buf.copy_(src_data)

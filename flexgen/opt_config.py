@@ -152,7 +152,7 @@ def download_opt_weights_old(model_name, path):
           f"checking the memory usage of this process.")
 
     disable_torch_init()
-    hf_model_name = "/workspace/sparse-gpt/facebook-opt-13B"
+    hf_model_name = "/workspace/sparse-gpt/facebook-opt-1.3B"
 
     model = model_class.from_pretrained(hf_model_name, torch_dtype=torch.float16,
                                         _fast_init=True)
@@ -232,7 +232,7 @@ def download_opt_weights(model_name, path):
     elif "galactica" in model_name:
         hf_model_name = "facebook/" + model_name
 
-    folder = "/workspace/sparse-gpt/facebook-opt-13B"
+    folder = "/workspace/sparse-gpt/facebook-opt-1.3B"
     # folder = snapshot_download(hf_model_name, allow_patterns="*.bin")
     bin_files = glob.glob(os.path.join(folder, "*.bin"))
 
