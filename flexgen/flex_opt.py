@@ -604,6 +604,7 @@ class OptLM:
         self.policy = policy
         self.num_gpu_batches = policy.num_gpu_batches
 
+        # append each layer in Model: basically like re-warp each layer to schedule
         layers = []
         layers.append(InputEmbed(self.config, self.env, self.policy))
         for i in range(self.config.num_hidden_layers):
@@ -664,7 +665,7 @@ class OptLM:
 
     def load_weight(self, i, j, k, overlap=True):
         # Handle corner cases
-        if j == self.num_layers:
+        if j == self.num_layers:  # j - current layer i - current generate length
             j = 0
             i += 1
             if i == self.execute_gen_len:
@@ -797,7 +798,7 @@ class OptLM:
         # Update the hidden in place
         # Clear the weight_read_buf if it is the last gpu batch
         # Clear the cache_read_buf
-        # Run layer computation
+        # Run layer computationm
         self.layers[j].forward(self.hidden[i][j][k], self.cache_read_buf[j][k],
                                self.weight_read_buf[j], self.attention_mask[k],
                                self.cache_write_buf[j][k], i, k)
@@ -847,7 +848,7 @@ class OptLM:
         task = Task(
             inputs=inputs,
             prompt_len=len(inputs[0]),
-            gen_len=max_new_tokens,
+            gen_len=max_new_tokens,  # generate length 默认为 max_new_tokens
             cut_gen_len=cut_gen_len,
             do_sample=do_sample,
             temperature=temperature,
@@ -894,9 +895,12 @@ class OptLM:
         # Generate
         if debug_mode is None:
             if not overlap:
+                print("generating loop normal")
+
                 # No overlap, easy to understand, suitable for debugging
                 self.generation_loop_normal()
             else:
+                print("overlap I/O with compute")
                 # Overlap I/O and compute
                 if num_gpu_batches == 1:
                     self.generation_loop_overlap_single_batch()
@@ -907,7 +911,7 @@ class OptLM:
             if num_gpu_batches == 1:
                 self.generation_loop_debug_single_batch()
             else:
-
+                self.generation_loop_debug_multi_batch()
         else:
             raise ValueError("Invalid debug mode: {debug_mode}")
 
@@ -922,6 +926,7 @@ class OptLM:
 
     # generate without overlap:
     def generation_loop_normal(self):
+
         for i in range(self.execute_gen_len):  # i: iteration-level
             timers("generate").start()
             for k in range(self.num_gpu_batches):  # b: batch-level
@@ -937,6 +942,10 @@ class OptLM:
                     self.store_hidden(i, j, k)
                     self.store_cache(i, j, k, overlap=False)
             timers("generate").stop()
+
+        print("end round:")
+        print(timers("generate").costs)
+
 
     def generation_loop_debug_normal(self):
         execute_num_batches = 20
@@ -1021,6 +1030,7 @@ class OptLM:
                 print(f"{name:22s} (per-batch): {np.mean(costs):.6f} s")
 
     def generation_loop_overlap_single_batch(self):
+        print("generation_loop_overlap_single_batch")
         # Prologue
         for k in range(self.num_gpu_batches):
             self.load_weight(0, 0, k)
@@ -1028,9 +1038,11 @@ class OptLM:
 
         # Generate
         for i in range(self.execute_gen_len):
+            print("i: ", i)
             timers("generate").start()
             self.update_attention_mask(i, 0)
             for j in range(self.num_layers):
+                print("num layers: ", j)
                 self.load_weight(i, j + 1, 0)
                 self.load_cache(i, j + 1, 0)
                 self.load_hidden(i, j, 0)
@@ -1043,7 +1055,12 @@ class OptLM:
             if self.task.stop and np.all(self.stopped):
                 break
 
+        print("end round:")
+        print(timers("generate").costs)
+
+
     def generation_loop_overlap_multi_batch(self):
+        print("generation_loop_overlap_multi_batch")
         # Prologue
         for k in range(self.num_gpu_batches):
             self.load_weight(0, 0, k)
@@ -1111,6 +1128,8 @@ class OptLM:
                 timers("generate").costs.append(timers("prefill").costs[0])
             else:
                 timers("generate").costs.append(self.num_layers * batch_cost)
+
+        print()
 
     def generation_loop_debug_multi_batch(self):
         execute_num_batches = 20
@@ -1233,7 +1252,7 @@ def run_flexgen(args):
     model = OptLM(opt_config, env, args.path, policy)
 
     try:
-        print("warmup - generate")
+        print("warmup - generatezczxczxczxc")
         output_ids = model.generate(
             warmup_inputs, max_new_tokens=1, verbose=args.verbose)
 

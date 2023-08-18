@@ -665,7 +665,7 @@ class TorchDisk:
         return TorchTensor(shape, np_dtype_to_torch_dtype[dtype],
                            path, self, name=name)
 
-    def delete(self, tensor):
+    def delete(self, tensor):  # delete temp file on disk
         if os.path.exists(tensor.data) and tensor.delete_file:
             os.remove(tensor.data)
 
