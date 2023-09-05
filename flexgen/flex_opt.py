@@ -32,6 +32,7 @@ DUMMY_WEIGHT = "_DUMMY_"  # Use dummy weights for benchmark purposes
 
 @dataclasses.dataclass(frozen=True)
 class Policy:
+    # gpu batch size * num gpu batches == input length
     gpu_batch_size: int
     num_gpu_batches: int
 
@@ -104,6 +105,10 @@ def init_weight_list(weight_specs, policy, env):
 
     sizes = [np.prod(spec[0]) for spec in weight_specs]
     sizes_cumsum = np.cumsum(sizes)
+
+    # print("init_weight_list")
+    # print(weight_specs)
+
     ret = []
     for i in range(len(weight_specs)):
         mid_percent = (sizes_cumsum[i] - sizes[i] / 2) / sizes_cumsum[-1]
@@ -164,6 +169,7 @@ class InputEmbed:
             # w_pos
             ((s + 2, h), dtype, path + "decoder.embed_positions.weight"),
         ]
+
         weights = init_weight_list(weight_specs, self.policy, self.env)
 
         weight_home.store(weights)
@@ -912,6 +918,9 @@ class OptLM:
                 self.generation_loop_debug_single_batch()
             else:
                 self.generation_loop_debug_multi_batch()
+        elif debug_mode == "breakdown":
+            # No overlap, fewer batches, execution time breakdown
+            self.generation_loop_debug_normal()
         else:
             raise ValueError("Invalid debug mode: {debug_mode}")
 
@@ -927,25 +936,64 @@ class OptLM:
     # generate without overlap:
     def generation_loop_normal(self):
 
+        update_attention_timer = []
+        load_weight_timer = []
+        load_cache_timer = []
+        load_hidden_timer = []
+        comput_timer = []
+        store_hidden_timer = []
+        store_cache_timer = []
+
         for i in range(self.execute_gen_len):  # i: iteration-level
             timers("generate").start()
+
+            t0 = time.time()
             for k in range(self.num_gpu_batches):  # b: batch-level
                 self.update_attention_mask(i, k)
+            t0_ = time.time()
+
+            update_attention_timer.append(t0_ - t0)
+
             for j in range(self.num_layers):  # j: layer-level
+                t1 = time.time()
                 for k in range(self.num_gpu_batches):
                     self.load_weight(i, j, k, overlap=False)
+                t2 = time.time()
+
+                load_weight_timer.append(t2-t1)
 
                 for k in range(self.num_gpu_batches):
+
+                    t3 = time.time()
                     self.load_cache(i, j, k, overlap=False)
+                    t3_ = time.time()
                     self.load_hidden(i, j, k)
+                    t4 = time.time()
                     self.compute_layer(i, j, k)
+                    t5 = time.time()
                     self.store_hidden(i, j, k)
+                    t6 = time.time()
                     self.store_cache(i, j, k, overlap=False)
+                    t7 = time.time()
+
+                    load_cache_timer.append(t3_-t3)
+                    load_hidden_timer.append(t4-t3)
+                    comput_timer.append(t5-t4)
+                    store_hidden_timer.append(t6-t5)
+                    store_cache_timer.append(t7-t6)
+
             timers("generate").stop()
 
         print("end round:")
         print(timers("generate").costs)
-
+        print("timers")
+        print(update_attention_timer)
+        print(load_weight_timer)
+        print(load_cache_timer)
+        print(load_hidden_timer)
+        print(comput_timer)
+        print(store_cache_timer)
+        print(store_hidden_timer)
 
     def generation_loop_debug_normal(self):
         execute_num_batches = 20
@@ -961,6 +1009,10 @@ class OptLM:
         timers("store_cache_decoding").reset()
         timers("compute_layer_prefill").reset()
         timers("compute_layer_decoding").reset()
+
+        timers("load_hidden").reset()
+        timers("store_hidden").reset()
+
         load_weight_timer = timers("load_weight")
 
         for i in range(self.execute_gen_len):  # iteration num
@@ -973,6 +1025,11 @@ class OptLM:
                 load_cache_timer = timers("load_cache_decoding")
                 store_cache_timer = timers("store_cache_decoding")
                 compute_layer_timer = timers("compute_layer_decoding")
+
+            load_hidden_timer = timers("load_hidden")
+            store_hidden_timer = timers("store_hidden")
+
+            timers('generate').start()
 
             for k in range(self.num_gpu_batches):
                 self.update_attention_mask(i, k)
@@ -989,11 +1046,19 @@ class OptLM:
                     load_cache_timer.start(self.sync)
                     self.load_cache(i, j, k)
                     load_cache_timer.stop(self.sync)
+
+                    load_hidden_timer.start(self.sync)
                     self.load_hidden(i, j, k)
+                    load_hidden_timer.stop(self.sync)
+
                     compute_layer_timer.start(self.sync)
                     self.compute_layer(i, j, k)
                     compute_layer_timer.stop(self.sync)
+
+                    store_hidden_timer.start(self.sync)
                     self.store_hidden(i, j, k)
+                    store_hidden_timer.stop(self.sync)
+
                     store_cache_timer.start(self.sync)
                     self.store_cache(i, j, k)
                     store_cache_timer.stop(self.sync)
@@ -1003,6 +1068,9 @@ class OptLM:
                     pbar.update(1)
                     batch_ct += 1
                 if batch_ct >= execute_num_batches: break
+
+            timers("generate").stop()
+
             if batch_ct >= execute_num_batches: break
             if i == 0: timers("prefill_total").stop(self.sync)
 
@@ -1024,10 +1092,41 @@ class OptLM:
         print(f"load_weight            (per-layer)"
               f": {np.mean(timers('load_weight').costs):.6f} s")
         for stage in ["prefill", "decoding"]:
-            for func in ["load_cache", "store_cache", "compute_layer"]:
+            for func in ["load_ cache", "store_cache", "compute_layer"]:
                 name = func + "_" + stage
                 costs = timers(name).costs
                 print(f"{name:22s} (per-batch): {np.mean(costs):.6f} s")
+                print("real data: ", costs)
+
+        print("load weight: ", timers('load_weight').costs)
+        print("generate cost: ", timers("generate").costs)
+        print("============mine============\n\n\n")
+        print(timers("prefill_total").costs)
+        print(timers("decoding_gpu_batch").costs)
+        print(timers("load_weight").costs)
+        print(timers("load_cache_prefill").costs)
+        print(timers("load_cache_decoding").costs)
+        print(timers("store_cache_prefill").costs)
+        print(timers("store_cache_decoding").costs)
+        print(timers("compute_layer_prefill").costs)
+        print(timers("compute_layer_decoding").costs)
+        print(timers("load_hidden").costs)
+        print(timers("store_hidden").costs)
+
+        print()
+        timers("store_cache_prefill").reset()
+        timers("store_cache_decoding").reset()
+        timers("compute_layer_prefill").reset()
+        timers("compute_layer_decoding").reset()
+        timers("prefill_total").reset()
+        timers("decoding_gpu_batch").reset()
+
+        timers("load_weight").reset()
+        timers("load_cache_prefill").reset()
+        timers("load_cache_decoding").reset()
+
+        timers("load_hidden").reset()
+        timers("store_hidden").reset()
 
     def generation_loop_overlap_single_batch(self):
         print("generation_loop_overlap_single_batch")
@@ -1038,11 +1137,9 @@ class OptLM:
 
         # Generate
         for i in range(self.execute_gen_len):
-            print("i: ", i)
             timers("generate").start()
             self.update_attention_mask(i, 0)
             for j in range(self.num_layers):
-                print("num layers: ", j)
                 self.load_weight(i, j + 1, 0)
                 self.load_cache(i, j + 1, 0)
                 self.load_hidden(i, j, 0)
@@ -1088,6 +1185,7 @@ class OptLM:
             self.execute_gen_len - 1, self.num_layers - 1, self.num_gpu_batches - 1)
 
     def generation_loop_debug_single_batch(self):
+        print("generation_loop_debug_single_batch")
         execute_num_batches = 20
         batch_ct = 0
         pbar = tqdm(total=execute_num_batches)
@@ -1252,7 +1350,7 @@ def run_flexgen(args):
     model = OptLM(opt_config, env, args.path, policy)
 
     try:
-        print("warmup - generatezczxczxczxc")
+        print("warmup - generate zczxczxczxc")
         output_ids = model.generate(
             warmup_inputs, max_new_tokens=1, verbose=args.verbose)
 

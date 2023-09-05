@@ -116,7 +116,17 @@ class TorchTensor:
                 tmp = global_cpu_device.compressed_device.compress(tmp, self.data[2])
                 general_copy(self, None, tmp, None)
             else:
-                self.data.copy_(torch.from_numpy(np_array))
+                # print("load from np")
+                x = torch.from_numpy(np_array)
+
+                # print(x)
+                # print(x.shape)
+
+                # print("self.data")
+                # print(self.data)
+                # print(self.data.shape)
+
+                self.data.copy_(x)
 
     def load_from_np_file(self, filename):
         if self.device.device_type == DeviceType.DISK:
