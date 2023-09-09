@@ -156,6 +156,8 @@ def download_opt_weights_old(model_name, path):
     # hf_model_name = "/workspace/flexgen/facebook-6.7b"
     hf_model_name = "/workspace/sparse-gpt/facebook-opt-1.3B"
 
+    print("model: ", hf_model_name)
+
     model = model_class.from_pretrained(hf_model_name, torch_dtype=torch.float16,
                                         _fast_init=True)
     restore_torch_init()

@@ -313,11 +313,11 @@ class DistOptLM(OptLM):
         num_gpu_batches = self.num_gpu_batches
         gpu_batch_size = self.policy.gpu_batch_size
         overlap = self.policy.overlap
-        num_prompts = len(task.inputs)
+        num_prompts = len(task.inputs)  # total batch size
         num_inner_iterations = self.num_inner_iterations
 
         assert num_prompts % (gpu_batch_size * num_gpu_batches) == 0
-        num_pipeline_batches = num_prompts // (gpu_batch_size * num_gpu_batches)
+        num_pipeline_batches = num_prompts // (gpu_batch_size * num_gpu_batches)  # pipeline batch: 分为n个stage，每个stage 执行 gpu_batch_size * num_gpu_batches 个input
         self.num_pipeline_batches = num_pipeline_batches
         assert num_pipeline_batches % num_inner_iterations == 0
         prompt_len, gen_len = task.prompt_len, task.gen_len
@@ -354,13 +354,16 @@ class DistOptLM(OptLM):
 
         # Generate
         if not overlap:
+            print("no overlap")
             # No overlap, easy to understand, suitable for debugging
             self.generation_loop_normal()
         else:
             # Overlap I/O and compute
             if self.policy.num_gpu_batches == 1:
+                print("bs = 1")
                 self.generation_loop_overlap_one_batch()
             else:
+                print("bs > 1")
                 self.generation_loop_overlap_multi_batch()
 
         # Delete cache
@@ -487,6 +490,9 @@ class DistOptLM(OptLM):
 
                     timers(timer_name).stop()
 
+                    print("executing: ", i)
+                    print(timers(timer_name).costs)
+
         if self.num_pipeline_stages > 1:
             self.send_recv_hidden(last_sending_job, None)
             dist.barrier()
@@ -501,7 +507,7 @@ class DistOptLM(OptLM):
 
         for b in range(self.num_pipeline_batches // self.num_inner_iterations):
             for i in range(self.execute_gen_len):
-                for t in range(self.num_inner_iterations):
+                for t in range(self.num_inner_iterations):  # inner iteration: executing in one gpu
                     timer_name = "generate-prompt" if i == 0 else "generate"
                     timers(timer_name).start()
                     for k in range(self.num_gpu_batches):
@@ -523,6 +529,8 @@ class DistOptLM(OptLM):
                     last_sending_job = (t, i)
 
                     timers(timer_name).stop()
+                    print("executing: ", i)
+                    print(timers(timer_name).costs)
 
         if self.num_pipeline_stages > 1:
             self.send_recv_hidden(last_sending_job, None)
@@ -602,9 +610,12 @@ def run_flexgen_dist(args):
     prefill_latency = sum(prompt_costs)
     prefill_throughput = num_prompts * prompt_len / prefill_latency
     if cut_gen_len:  # project latency of cut_gen_len to gen_len
+        print("cut_gen_len")
         costs = np.array(generate_costs).reshape(-1, cut_gen_len-1).sum(axis=0).tolist()
         decode_latency = project_decode_latency([None] + costs, prompt_len, gen_len)
+        print(costs)
     else:
+        print("w/o cut gen len")
         decode_latency = sum(generate_costs)
     decode_throughput = num_prompts * (gen_len - 1) / max(decode_latency, 1e-10)
     num_generated_tokens = num_prompts * gen_len
@@ -636,6 +647,15 @@ def run_flexgen_dist(args):
                f"total latency: {total_latency:.2f} s\t"
                f"total throughput: {total_throughput:.2f} token/s")
     print(log_str)
+
+    print("all prefill latency")
+    print(prompt_costs)
+    print("num prompts & prompt len")
+    print(num_prompts)
+    print(prompt_len)
+    print("all decode latency")
+    print(prompt_len)
+    print(gen_len)
 
     if not args.no_log:
         if args.log_file == "auto":
