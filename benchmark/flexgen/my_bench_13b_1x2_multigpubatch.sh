@@ -19,10 +19,10 @@ mpirun \
     --head-ip $(hostname -i) \
     --port 7777 \
     --use-mpi \
-    --model facebook/opt-13b \
-    --gpu-batch-size 2 \
-    --num-gpu-batches 2 \
-    --percent 0 100 100 0 100 0 \
+    --model facebook/opt-1.3b \
+    --gpu-batch-size 16 \
+    --num-gpu-batches 3 \
+    --percent 0 100 0 100 100 0 \
     --comm-device cpu \
     --cut-gen-len 5 \
     --path _DUMMY_

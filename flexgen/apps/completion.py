@@ -38,7 +38,12 @@ def main(args):
                     compress_cache=args.compress_cache,
                     comp_cache_config=CompressionConfig(
                         num_bits=4, group_size=64,
-                        group_dim=2, symmetric=False))
+                        group_dim=2, symmetric=False),
+                    compress_hidden=args.compress_cache,
+                    comp_hidden_config=CompressionConfig(
+                        num_bits=4, group_size=64,
+                        group_dim=2, symmetric=False)
+                    )
 
     # Model
     print("Initialize...")

@@ -209,6 +209,10 @@ def single_query_test(args, task_instruction, test_data, task, pd_data_files, te
                     compress_cache=args.compress_cache,
                     comp_cache_config=CompressionConfig(
                         num_bits=4, group_size=64,
+                        group_dim=2, symmetric=False),
+                    compress_hidden=args.compress_cache,
+                    comp_hidden_config=CompressionConfig(
+                        num_bits=4, group_size=64,
                         group_dim=2, symmetric=False))
 
     logger.info(f"Init weights begin.")
@@ -340,7 +344,12 @@ def batch_query_test(args, task_instruction, test_data, task, pd_data_files, tes
                     compress_cache=args.compress_cache,
                     comp_cache_config=CompressionConfig(
                         num_bits=4, group_size=64,
-                        group_dim=2, symmetric=False))
+                        group_dim=2, symmetric=False),
+                    compress_hidden=args.compress_cache,
+                    comp_hidden_config=CompressionConfig(
+                        num_bits=4, group_size=64,
+                        group_dim=2, symmetric=False)
+                    )
 
     logger.info(f"Init weights begin.")
     tic = time.time()

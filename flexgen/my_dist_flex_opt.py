@@ -1,5 +1,4 @@
 import argparse
-import time
 from itertools import count
 import os
 import pickle
@@ -38,7 +37,7 @@ class DistOptLM(OptLM):
         self.policy = policy
         self.num_gpu_batches = self.policy.num_gpu_batches
         self.pipeline_rank = pipeline_rank
-        self.num_pipeline_stages = num_pipeline_stages
+        self.num_pipeline_stages = num_pipeline_stages  # pipeline stage 总数
         self.num_inner_iterations = num_inner_iterations if num_inner_iterations is not None else num_pipeline_stages
         self.async_comm = async_comm
         if comm_device == "cpu":
@@ -49,22 +48,15 @@ class DistOptLM(OptLM):
             raise ValueError(f"Invalid comm_device: {comm_device}")
 
         layers = []
-        if pipeline_rank == 0:  # first layer->first pipeline stage
+        if pipeline_rank == 0:
             layers.append(InputEmbed(self.config, self.env, self.policy))
         pipeline_stage_sizes = [config.num_hidden_layers // num_pipeline_stages
                                 + int(i < config.num_hidden_layers % num_pipeline_stages)
                                 for i in range(num_pipeline_stages)]
-
-        print("pipeline_stage_sizes")
-        print(pipeline_stage_sizes)
-
         layer_start_ids = [0]
 
         for stage_size in pipeline_stage_sizes:
             layer_start_ids.append(layer_start_ids[-1] + stage_size)
-
-        print("layer_start_ids")
-        print(layer_start_ids)
 
         for i in range(layer_start_ids[pipeline_rank], layer_start_ids[pipeline_rank + 1]):
             if self.policy.sep_layer:
@@ -73,7 +65,7 @@ class DistOptLM(OptLM):
             else:
                 layers.append(TransformerLayer(self.config, self.env, self.policy, i))
 
-        if pipeline_rank == num_pipeline_stages - 1:  # last layer->last pipeline stage
+        if pipeline_rank == num_pipeline_stages - 1:
             layers.append(OutputEmbed(self.config, self.env, self.policy))
 
         self.layers = layers
@@ -119,13 +111,13 @@ class DistOptLM(OptLM):
 
     def load_cache(self, t, i, j, k):
         # Handle corner cases
-        if k == self.num_gpu_batches:
+        if k == self.num_gpu_batches:  # 竖着遍历完了，遍历下一层权重
             k = 0
             j += 1
-        if j == self.num_layers:
+        if j == self.num_layers:  # 当前层权重遍历完毕，遍历下一个pipeline-stage
             j = 0
             t += 1
-        if t == self.num_inner_iterations:
+        if t == self.num_inner_iterations:  # 当前pipeline-stage遍历完毕，进入下一个token的生成
             t = 0
             i += 1
         if i == self.execute_gen_len:
@@ -137,10 +129,10 @@ class DistOptLM(OptLM):
 
     def store_cache(self, t, i, j, k):
         # Handle corner cases
-        if k == -1:
+        if k == -1:  # multibatch时第0个 gpu batch
             k = self.num_gpu_batches - 1
             j -= 1
-        if j == -1:
+        if j == -1:  # onebatch 时 第0层
             j = self.num_layers - 1
             t -= 1
         if t == -1:
@@ -179,7 +171,6 @@ class DistOptLM(OptLM):
 
         # Load to hidden states buffers
         dst = self.layers[j].compute
-
         if j > 0:  # load from the last layer
             val = self.hidden[t][i][j - 1][k].pop().move(dst)
             self.hidden[t][i][j][k].store(val)
@@ -193,30 +184,13 @@ class DistOptLM(OptLM):
         num_inner_iterations = self.num_inner_iterations
         left = ((b * num_inner_iterations + t) * num_gpu_batches + k) * gpu_batch_size
         right = left + gpu_batch_size
-
-        print("check")
-        print(self.policy.compress_hidden)
-
-        if self.policy.compress_hidden:
-            print("compress hidden")
-            if i == 0:  # load from the input ids
-                val = dst.allocate((gpu_batch_size, self.task.prompt_len), np.int64)
-                val.load_from_np(self.output_ids[left:right, :self.task.prompt_len])
-            else:  # load from the last generated token
-                pos = self.task.prompt_len + i
-                val = dst.compressd_device.allocate((gpu_batch_size, 1), np.float16)
-                val.load_from_np(self.output_ids[left:right, pos - 1:pos])
-        else:
-            if i == 0:  # load from the input ids
-                val = dst.allocate((gpu_batch_size, self.task.prompt_len), np.int64)
-                val.load_from_np(self.output_ids[left:right, :self.task.prompt_len])
-            else:  # load from the last generated token
-                pos = self.task.prompt_len + i
-                val = dst.allocate((gpu_batch_size, 1), np.int64)
-                val.load_from_np(self.output_ids[left:right, pos - 1:pos])
-
-        print("load hidden val: ")
-        print(val)
+        if i == 0:  # load from the input ids
+            val = dst.allocate((gpu_batch_size, self.task.prompt_len), np.int64)
+            val.load_from_np(self.output_ids[left:right, :self.task.prompt_len])
+        else:  # load from the last generated token
+            pos = self.task.prompt_len + i
+            val = dst.allocate((gpu_batch_size, 1), np.int64)
+            val.load_from_np(self.output_ids[left:right, pos - 1:pos])
         self.hidden[t][i][j][k].store(val)
 
     def store_hidden(self, b, t, i, j, k):
@@ -237,21 +211,11 @@ class DistOptLM(OptLM):
             return
 
         # Store to hidden states buffers
-
-        if self.policy.compress_hidden:
-            if j != self.num_layers - 1 or self.pipeline_rank != self.num_pipeline_stages - 1 or i != self.execute_gen_len - 1:
-                # Move to home
-                x = self.hidden[t][i][j][k]
-                # x_comp = self..compress
-                if x.val:
-                    x.val = x.val.move(self.act_home)
-
-        else:
-            if j != self.num_layers - 1 or self.pipeline_rank != self.num_pipeline_stages - 1 or i != self.execute_gen_len - 1:
-                # Move to home
-                x = self.hidden[t][i][j][k]
-                if x.val:
-                    x.val = x.val.move(self.act_home)
+        if j != self.num_layers - 1 or self.pipeline_rank != self.num_pipeline_stages - 1 or i != self.execute_gen_len - 1:
+            # Move to home
+            x = self.hidden[t][i][j][k]
+            if x.val:
+                x.val = x.val.move(self.act_home)
 
         if j == self.num_layers - 1 and self.pipeline_rank == self.num_pipeline_stages - 1:
             # store to output
@@ -272,19 +236,6 @@ class DistOptLM(OptLM):
     def send_hidden(self, t, i, j, k, tag=0, async_=False):
         # Suppose we need to send tensors on GPUs
         x = self.hidden[t][i][j][k]
-
-        # print("send hidden")
-        # print(x.val.data.shape)
-        # # test_tensor = torch.randint(-5, 5, x.val.data.shape)
-        # test_tensor = torch.randn(x.val.data.shape).half()
-        # print(test_tensor.shape)
-        # x.val.data = test_tensor
-
-        print("send hidden")
-        print(x.val.data.shape)
-        print(x.val.data.dtype)
-        print(type(x))
-
         val = x.pop().move(self.comm_device)
         receiver_rank = (self.pipeline_rank + 1) % self.num_pipeline_stages
         if async_:
@@ -295,9 +246,7 @@ class DistOptLM(OptLM):
 
     def recv_hidden(self, t, i, j, k, tag=0, async_=False):
         sender_rank = (self.pipeline_rank - 1) % self.num_pipeline_stages
-
         val_holder = self.hidden[t][i][j][k]
-
         seq_len = self.task.prompt_len if i == 0 else 1
         shape, dtype = self.layers[j].input_act_shape_and_dtype(
             self.policy.gpu_batch_size, seq_len)
@@ -311,15 +260,9 @@ class DistOptLM(OptLM):
 
         if async_:
             future = dist.irecv(val_holder.val.data, sender_rank, tag=tag)
-
-            # val_holder.val.data = torch.randn(val_holder.val.data.shape).half()
-
             return future, move_value_callback
         else:
             dist.recv(val_holder.val.data, sender_rank, tag=tag)
-
-            # val_holder.val.data = torch.randn(val_holder.val.data.shape).half()
-
             move_value_callback()
 
     def compute_layer(self, t, i, j, k):
@@ -360,8 +303,7 @@ class DistOptLM(OptLM):
                  stop: Optional[int] = None,
                  debug_mode: Optional[str] = None,
                  cut_gen_len: Optional[int] = None,
-                 verbose: int = 0,
-                 is_warmup: bool = False):
+                 verbose: int = 0):
         task = Task(
             inputs=inputs,
             prompt_len=len(inputs[0]),
@@ -377,11 +319,12 @@ class DistOptLM(OptLM):
         num_gpu_batches = self.num_gpu_batches
         gpu_batch_size = self.policy.gpu_batch_size
         overlap = self.policy.overlap
-        num_prompts = len(task.inputs)
+        num_prompts = len(task.inputs)  # total batch size
         num_inner_iterations = self.num_inner_iterations
 
         assert num_prompts % (gpu_batch_size * num_gpu_batches) == 0
-        num_pipeline_batches = num_prompts // (gpu_batch_size * num_gpu_batches)
+        num_pipeline_batches = num_prompts // (
+                    gpu_batch_size * num_gpu_batches)  # pipeline batch: 分为n个stage，每个stage 执行 gpu_batch_size * num_gpu_batches 个input
         self.num_pipeline_batches = num_pipeline_batches
         assert num_pipeline_batches % num_inner_iterations == 0
         prompt_len, gen_len = task.prompt_len, task.gen_len
@@ -414,20 +357,20 @@ class DistOptLM(OptLM):
         if self.policy.cpu_cache_compute:
             self.env.cpu.init_attention_compute_workspace(self.config, self.task, self.policy)
 
-        dist.barrier()
+        dist.barrier()  # 同步进程
 
         # Generate
         if not overlap:
+            print("no overlap")
             # No overlap, easy to understand, suitable for debugging
-            if is_warmup:
-                self.generation_loop_normal()
-            else:
-                self.generation_loop_normal_debug()
+            self.generation_loop_normal()
         else:
             # Overlap I/O and compute
             if self.policy.num_gpu_batches == 1:
+                print("bs = 1")
                 self.generation_loop_overlap_one_batch()
             else:
+                print("bs > 1")
                 self.generation_loop_overlap_multi_batch()
 
         # Delete cache
@@ -438,17 +381,20 @@ class DistOptLM(OptLM):
         if self.policy.cpu_cache_compute:
             self.env.cpu.del_attention_compute_workspace()
 
+        # log
+        print("gpu_batch_size: ", gpu_batch_size)
+        print("num_gpu_batches: ", num_gpu_batches)
+
         return self.output_ids
 
     def send_recv_hidden(self, sending_job, receiving_job):
         st, si = sending_job if sending_job is not None else (None, None)
         rt, ri = receiving_job if receiving_job is not None else (None, None)
         sending = sending_job is not None and not (
-                si == self.execute_gen_len - 1 and self.pipeline_rank == self.num_pipeline_stages - 1)
+                    si == self.execute_gen_len - 1 and self.pipeline_rank == self.num_pipeline_stages - 1)
         receiving = receiving_job is not None and not (ri == 0 and self.pipeline_rank == 0)
 
         def _send():
-            # tick = time.time()
             sending_futures = []
             if not sending:
                 return sending_futures
@@ -457,10 +403,6 @@ class DistOptLM(OptLM):
                                                   async_=self.async_comm)
                 sending_futures.append(sending_future)
                 self.sending_tag += 1
-
-            tock = time.time()
-            # print("sending tag: ", self.sending_tag)
-            # print(tock - tick)
             return sending_futures
 
         def _recv():
@@ -499,7 +441,6 @@ class DistOptLM(OptLM):
                 for t in range(self.num_inner_iterations):
                     timer_name = "generate-prompt" if i == 0 else "generate"
                     timers(timer_name).start()
-
                     for k in range(self.num_gpu_batches):
                         self.update_attention_mask(b, t, i, k)
 
@@ -507,7 +448,6 @@ class DistOptLM(OptLM):
                         self.send_recv_hidden(last_sending_job, (t, i))
 
                     for j in range(self.num_layers):
-
                         for k in range(self.num_gpu_batches):
                             self.load_weight(b, t, i, j, k)
                         self.sync()
@@ -516,10 +456,8 @@ class DistOptLM(OptLM):
                             self.load_cache(t, i, j, k)
                             self.load_hidden(b, t, i, j, k)
                             self.sync()
-
                             self.compute_layer(t, i, j, k)
                             self.sync()
-
                             self.store_hidden(b, t, i, j, k)
                             self.store_cache(t, i, j, k)
                             self.sync()
@@ -528,81 +466,7 @@ class DistOptLM(OptLM):
 
                     timers(timer_name).stop()
 
-        if self.num_pipeline_stages > 1:
-            self.send_recv_hidden(last_sending_job, None)
-            dist.barrier()
-
-    def generation_loop_normal_debug(self):
-        self.sending_tag = 0
-        self.receiving_tag = 0
-        last_sending_job = None
-
-        total_tick = time.time()
-        print("tick: ", total_tick)
-
-        for b in range(self.num_pipeline_batches // self.num_inner_iterations):
-            for i in range(self.execute_gen_len):
-                for t in range(self.num_inner_iterations):
-                    timer_name = "generate-prompt" if i == 0 else "generate"
-                    timers(timer_name).start()
-
-                    print("index: ", b, i, t)
-
-                    mask_tick = time.time()
-                    for k in range(self.num_gpu_batches):
-                        self.update_attention_mask(b, t, i, k)
-                    mask_tock = time.time()
-
-                    print("mask time: ", mask_tock - mask_tick)
-
-                    send_tick = time.time()
-                    if self.num_pipeline_stages > 1:
-                        self.send_recv_hidden(last_sending_job, (t, i))
-                    send_tock = time.time()
-
-                    print("send time: ", send_tock - send_tick)
-
-                    for j in range(self.num_layers):
-                        print("layers: ", j)
-
-                        weight_tick = time.time()
-                        for k in range(self.num_gpu_batches):
-                            self.load_weight(b, t, i, j, k)
-                        self.sync()
-                        weight_tock = time.time()
-                        print("load weight time: ", weight_tock - weight_tick)
-
-                        for k in range(self.num_gpu_batches):
-                            print("curr gpu batch: ", k)
-                            load_tick = time.time()
-                            self.load_cache(t, i, j, k)
-                            self.load_hidden(b, t, i, j, k)
-                            self.sync()
-                            load_tock = time.time()
-
-                            compute_tick = time.time()
-                            self.compute_layer(t, i, j, k)
-                            self.sync()
-                            compute_tock = time.time()
-
-                            store_tick = time.time()
-                            self.store_hidden(b, t, i, j, k)
-                            self.store_cache(t, i, j, k)
-                            self.sync()
-                            store_tock = time.time()
-
-                            print("load time: ", load_tock - load_tick)
-                            print("compute time: ", compute_tock - compute_tick)
-                            print("store time: ", store_tock - store_tick)
-
-                    last_sending_job = (t, i)
-
-                    timers(timer_name).stop()
-
-        total_tock = time.time()
-        print("tock: ", total_tock)
-        print("total time: ", total_tock-total_tick)
-
+        # 计算完成hidden后传到下一个stage
         if self.num_pipeline_stages > 1:
             self.send_recv_hidden(last_sending_job, None)
             dist.barrier()
@@ -615,6 +479,9 @@ class DistOptLM(OptLM):
         self.sending_tag = 0
         self.receiving_tag = 0
         last_sending_job = None
+
+        print("self.num_pipeline_batches: ", self.num_pipeline_batches)
+        print("self.num_inner_iterations: ", self.num_inner_iterations) # num_inner_iterations: pipeline stages
 
         # Generate
         for b in range(self.num_pipeline_batches // self.num_inner_iterations):
@@ -639,7 +506,12 @@ class DistOptLM(OptLM):
                     last_sending_job = (t, i)
 
                     timers(timer_name).stop()
-                    print(timer_name)
+
+                    print("pipeline stage: ", self.num_pipeline_stages)
+
+                    print("executing: ", i)
+                    print("b: ", b)
+                    print("t: ", t)
                     print(timers(timer_name).costs)
 
         if self.num_pipeline_stages > 1:
@@ -654,13 +526,9 @@ class DistOptLM(OptLM):
         for k in range(self.num_gpu_batches):
             self.load_weight(0, 0, 0, 0, k)
 
-        print("config")
-        print(self.num_pipeline_batches)
-        print(self.num_inner_iterations)
-
         for b in range(self.num_pipeline_batches // self.num_inner_iterations):
             for i in range(self.execute_gen_len):
-                for t in range(self.num_inner_iterations):
+                for t in range(self.num_inner_iterations):  # inner iteration: executing in one gpu
                     timer_name = "generate-prompt" if i == 0 else "generate"
                     timers(timer_name).start()
                     for k in range(self.num_gpu_batches):
@@ -682,8 +550,11 @@ class DistOptLM(OptLM):
                     last_sending_job = (t, i)
 
                     timers(timer_name).stop()
+
+                    print("executing: ", i)
+
+                    print("b: ", b)
                     print("t: ", t)
-                    print(timer_name)
                     print(timers(timer_name).costs)
 
         if self.num_pipeline_stages > 1:
@@ -700,8 +571,7 @@ def comm_test(comm_device):
 
 def run_flexgen_dist(args):
     t_name = args.model.replace("175b", "66b")
-    print("t_name: ", t_name)
-    tokenizer = AutoTokenizer.from_pretrained("/workspace/flexgen/facebook-6.7b")  # , padding_side="left"
+    tokenizer = AutoTokenizer.from_pretrained(t_name, padding_side="left")
     num_inner_iterations = args.num_inner_iterations if args.num_inner_iterations is not None else args.world_size
     num_prompts = args.num_gpu_batches * args.gpu_batch_size * num_inner_iterations * 1
     prompt_len, gen_len, cut_gen_len = args.prompt_len, args.gen_len, args.cut_gen_len
@@ -729,12 +599,7 @@ def run_flexgen_dist(args):
                                       group_dim=0, symmetric=False),
                     args.compress_cache,
                     CompressionConfig(num_bits=4, group_size=64,
-                                      group_dim=2, symmetric=False),
-                    compress_hidden=args.compress_hidden,
-                    comp_hidden_config=CompressionConfig(
-                        num_bits=4, group_size=64,
-                        group_dim=2, symmetric=False)
-                    )
+                                      group_dim=2, symmetric=False))
     assert not (args.compress_cache and args.attn_sparsity < 1.0), "Not implemented"
 
     opt_config = get_opt_config(args.model)
@@ -750,23 +615,16 @@ def run_flexgen_dist(args):
     try:
         print("warmup - generate")
         output_ids = model.generate(
-            warmup_inputs, max_new_tokens=2, verbose=args.verbose, is_warmup=True)
+            warmup_inputs, max_new_tokens=2, verbose=args.verbose)
 
         print("benchmark - generate")
-
-        tick = time.time()
         for timer_name in ["generate-prompt", "generate"]:
             timers(timer_name).reset()
         output_ids = model.generate(
             inputs, max_new_tokens=args.gen_len,
-            debug_mode=args.debug_mode, cut_gen_len=cut_gen_len, verbose=args.verbose, is_warmup=False)
-        tock = time.time()
+            debug_mode=args.debug_mode, cut_gen_len=cut_gen_len, verbose=args.verbose)
         prompt_costs = timers("generate-prompt").costs
         generate_costs = timers("generate").costs
-
-        print("costs:")
-        print(prompt_costs)
-        print(generate_costs)
     finally:
         env.close_copy_threads()
 
@@ -777,9 +635,12 @@ def run_flexgen_dist(args):
     prefill_latency = sum(prompt_costs)
     prefill_throughput = num_prompts * prompt_len / prefill_latency
     if cut_gen_len:  # project latency of cut_gen_len to gen_len
+        print("cut_gen_len")
         costs = np.array(generate_costs).reshape(-1, cut_gen_len - 1).sum(axis=0).tolist()
         decode_latency = project_decode_latency([None] + costs, prompt_len, gen_len)
+        print(costs)
     else:
+        print("w/o cut gen len")
         decode_latency = sum(generate_costs)
     decode_throughput = num_prompts * (gen_len - 1) / max(decode_latency, 1e-10)
     num_generated_tokens = num_prompts * gen_len
@@ -788,13 +649,13 @@ def run_flexgen_dist(args):
     _, gpu_peak_mem = gpu.mem_stats()
     _, cpu_peak_mem = cpu.mem_stats()
 
-    # if DUMMY_WEIGHT not in args.path:
-    #     outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)
-    #     show_str = "Outputs:\n" + 70 * '-' + "\n"
-    #     for i in [0, len(outputs) - 1]:
-    #         show_str += f"{i}: {outputs[i]}\n"
-    #         show_str += "-" * 70 + "\n"
-    #     print(show_str)
+    if DUMMY_WEIGHT not in args.path:
+        outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)
+        show_str = "Outputs:\n" + 70 * '-' + "\n"
+        for i in [0, len(outputs) - 1]:
+            show_str += f"{i}: {outputs[i]}\n"
+            show_str += "-" * 70 + "\n"
+        print(show_str)
 
     gpu.print_stats()
     cpu.print_stats()
@@ -809,9 +670,17 @@ def run_flexgen_dist(args):
                f"decode latency: {decode_latency:.2f} s\t"
                f"decode throughput: {decode_throughput:.2f} token/s\n"
                f"total latency: {total_latency:.2f} s\t"
-               f"total throughput: {total_throughput:.2f} token/s\n"
-               f"total latency on 4 gpu: {tock - tick} s")
+               f"total throughput: {total_throughput:.2f} token/s")
     print(log_str)
+
+    print("all prefill latency")
+    print(prompt_costs)
+    print("num prompts & prompt len")
+    print(num_prompts)
+    print(prompt_len)
+    print("all decode latency")
+    print(prompt_len)
+    print(gen_len)
 
     if not args.no_log:
         if args.log_file == "auto":

@@ -367,9 +367,13 @@ class TorchDevice:
         k = k.permute(2, 0, 1)
         v = v.permute(1, 0, 2)
 
+        print("cache before compress: ", type(k), k.dtype, k.shape)
+
         if compress_cache:
             k = self.compressed_device.compress(k, comp_config)
             v = self.compressed_device.compress(v, comp_config)
+            print("cache after compress: ", k)
+
         else:
             k = TorchTensor.create_from_torch(k, self)
             v = TorchTensor.create_from_torch(v, self)

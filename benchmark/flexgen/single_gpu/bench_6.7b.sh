@@ -1,0 +1,1 @@
+python -m flexgen.flex_opt --model facebook/opt-6.7b --path _DUMMY_ --prompt-len 256 --gen-len 32 --percent 0 100 100 0 100 0 --gpu-batch-size 4 --overlap False

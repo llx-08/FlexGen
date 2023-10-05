@@ -11,6 +11,7 @@ from typing import Tuple, Union, Optional, Any, Sequence, List
 import numpy as np
 import torch
 
+
 KB = 1 << 10
 MB = 1 << 20
 GB = 1 << 30
@@ -239,32 +240,33 @@ def project_decode_latency(costs, prompt_len, gen_len):
     if gen_len / prompt_len < 0.1:
         warmup = 2
         decode_latency = (sum(decode_costs[:warmup]) +
-                          np.mean(decode_costs[warmup:]) * (gen_len - 1 - warmup))
+            np.mean(decode_costs[warmup:]) * (gen_len - 1 - warmup))
     else:
         warmup = 2
         decode_latency = (sum(decode_costs[:warmup]) +
-                          np.mean(decode_costs[warmup:]) * (gen_len - 1 - warmup))
+            np.mean(decode_costs[warmup:]) * (gen_len - 1 - warmup))
 
-        # assert len(decode_costs) >= 4
-        # warmup = 2
-        # xs = np.arange(warmup, len(decode_costs))
-        # ys = np.asarray(decode_costs[warmup:])
-        # curve = np.poly1d(np.polyfit(xs, ys, deg=1))
-        # ys_pred = [curve(x) for x in range(gen_len-1)]
-        # decode_latency = sum(ys_pred)
+        #assert len(decode_costs) >= 4
+        #warmup = 2
+        #xs = np.arange(warmup, len(decode_costs))
+        #ys = np.asarray(decode_costs[warmup:])
+        #curve = np.poly1d(np.polyfit(xs, ys, deg=1))
+        #ys_pred = [curve(x) for x in range(gen_len-1)]
+        #decode_latency = sum(ys_pred)
 
-        # print([round(x, 4) for x in decode_costs])
-        # print([round(x, 4) for x in ys_pred])
+        #print([round(x, 4) for x in decode_costs])
+        #print([round(x, 4) for x in ys_pred])
 
     return decode_latency
 
 
 def write_benchmark_log(filename, model_size, cache_size, hidden_size,
-                        gpu_peak_mem, projected, prefill_latency, prefill_throughput,
-                        decode_latency, decode_throughput, total_latency, total_throughput):
-    log_str = (f"model size: {model_size / GB:.3f} GB\t"
-               f"cache size: {cache_size / GB:.3f} GB\t"
-               f"hidden size (p): {hidden_size / GB:.3f} GB\n"
+        gpu_peak_mem, projected, prefill_latency, prefill_throughput,
+        decode_latency, decode_throughput, total_latency, total_throughput):
+
+    log_str = (f"model size: {model_size/GB:.3f} GB\t"
+               f"cache size: {cache_size/GB:.3f} GB\t"
+               f"hidden size (p): {hidden_size/GB:.3f} GB\n"
                f"peak gpu mem: {gpu_peak_mem / GB:.3f} GB\t"
                f"projected: {projected}\n"
                f"prefill latency: {prefill_latency:.3f} s\t"

@@ -1,0 +1,1097 @@
+Initializing distributed environment at 172.17.0.2:7777, world_size=4, rank=1, local_rank=1.
+Initializing distributed environment at 172.17.0.2:7777, world_size=4, rank=3, local_rank=3.
+Initializing distributed environment at 172.17.0.2:7777, world_size=4, rank=2, local_rank=2.
+Initializing distributed environment at 172.17.0.2:7777, world_size=4, rank=0, local_rank=0.
+rank #3: Finished initializing distributed environment
+rank #3: t_name:  facebook/opt-13b
+rank #2: Finished initializing distributed environment
+rank #2: t_name:  facebook/opt-13b
+rank #1: Finished initializing distributed environment
+rank #1: t_name:  facebook/opt-13b
+rank #0: Finished initializing distributed environment
+rank #0: t_name:  facebook/opt-13b
+rank #0: model size: 23.921 GB, cache size: 39.844 GB, hidden size (prefill): 0.498 GB
+rank #0: warmup - generate
+rank #2: model size: 23.921 GB, cache size: 39.844 GB, hidden size (prefill): 0.498 GB
+rank #2: warmup - generate
+rank #3: model size: 23.921 GB, cache size: 39.844 GB, hidden size (prefill): 0.498 GB
+rank #3: warmup - generate
+rank #1: model size: 23.921 GB, cache size: 39.844 GB, hidden size (prefill): 0.498 GB
+rank #1: warmup - generate
+rank #0: sending tag:  2
+rank #0: 0.008183956146240234
+rank #1: sending tag:  2
+rank #1: 0.009462118148803711
+rank #0: sending tag:  4
+rank #0: 0.7578632831573486
+rank #2: sending tag:  2
+rank #2: 0.009357452392578125
+rank #1: sending tag:  4
+rank #1: 0.7514705657958984
+rank #0: sending tag:  6
+rank #0: 0.7595598697662354
+rank #3: sending tag:  2
+rank #3: 0.0016469955444335938
+rank #2: sending tag:  4
+rank #2: 0.6701920032501221
+rank #1: sending tag:  6
+rank #1: 0.6732056140899658
+rank #0: sending tag:  8
+rank #0: 0.009033918380737305
+rank #3: sending tag:  4
+rank #3: 0.0004513263702392578
+rank #2: sending tag:  6
+rank #2: 0.008219242095947266
+rank #1: sending tag:  8
+rank #1: 0.009961843490600586
+rank #0: sending tag:  10
+rank #0: 0.005825996398925781
+rank #3: sending tag:  6
+rank #3: 0.0004208087921142578
+rank #2: sending tag:  8
+rank #2: 0.0059337615966796875
+rank #1: sending tag:  10
+rank #1: 0.07091188430786133
+rank #0: sending tag:  12
+rank #0: 0.003634929656982422
+rank #3: sending tag:  8
+rank #3: 0.0005223751068115234
+rank #2: sending tag:  10
+rank #2: 0.06933879852294922
+rank #1: sending tag:  12
+rank #1: 0.06864690780639648
+rank #0: sending tag:  14
+rank #0: 0.0013914108276367188
+rank #2: sending tag:  12
+rank #2: 0.0004725456237792969
+rank #1: sending tag:  14
+rank #1: 0.0004782676696777344
+rank #0: sending tag:  16
+rank #0: 0.0004305839538574219
+rank #2: sending tag:  14
+rank #2: 0.0004467964172363281
+rank #1: sending tag:  16
+rank #1: 0.00033783912658691406
+rank #2: sending tag:  16
+rank #2: 0.00045752525329589844
+rank #3: benchmark - generate
+rank #2: benchmark - generate
+rank #1: benchmark - generate
+rank #0: benchmark - generate
+rank #0: sending tag:  2
+rank #0: 0.06620359420776367
+rank #1: sending tag:  2
+rank #1: 0.06855130195617676
+rank #0: sending tag:  4
+rank #0: 0.11607885360717773
+rank #2: sending tag:  2
+rank #2: 0.0701744556427002
+rank #1: sending tag:  4
+rank #1: 0.10967636108398438
+rank #0: sending tag:  6
+rank #0: 0.12296533584594727
+rank #3: sending tag:  2
+rank #3: 0.0005991458892822266
+rank #2: sending tag:  4
+rank #2: 0.08427190780639648
+rank #1: sending tag:  6
+rank #1: 0.1418778896331787
+rank #0: sending tag:  8
+rank #0: 0.14929604530334473
+rank #3: sending tag:  4
+rank #3: 0.0004749298095703125
+rank #2: sending tag:  6
+rank #2: 0.09707760810852051
+rank #1: sending tag:  8
+rank #1: 0.08545422554016113
+rank #0: sending tag:  10
+rank #0: 0.10298657417297363
+rank #3: sending tag:  6
+rank #3: 0.0005564689636230469
+rank #2: sending tag:  8
+rank #2: 0.08146810531616211
+rank #1: sending tag:  10
+rank #1: 1.368159532546997
+rank #0: sending tag:  12
+rank #0: 0.051018714904785156
+rank #3: sending tag:  8
+rank #3: 0.0004048347473144531
+rank #2: sending tag:  10
+rank #2: 1.3645732402801514
+rank #1: sending tag:  12
+rank #1: 1.3523008823394775
+rank #0: sending tag:  14
+rank #0: 0.0018219947814941406
+rank #3: sending tag:  10
+rank #3: 0.026578664779663086
+rank #2: sending tag:  12
+rank #2: 0.02140665054321289
+rank #1: sending tag:  14
+rank #1: 0.011755943298339844
+rank #0: sending tag:  16
+rank #0: 0.002259492874145508
+rank #3: sending tag:  12
+rank #3: 0.015375375747680664
+rank #2: sending tag:  14
+rank #2: 0.0051076412200927734
+rank #1: sending tag:  16
+rank #1: 0.0036344528198242188
+rank #0: sending tag:  18
+rank #0: 0.0025787353515625
+rank #3: sending tag:  14
+rank #3: 0.007878541946411133
+rank #2: sending tag:  16
+rank #2: 0.0030684471130371094
+rank #1: sending tag:  18
+rank #1: 0.0003361701965332031
+rank #0: sending tag:  20
+rank #0: 0.0014750957489013672
+rank #3: sending tag:  16
+rank #3: 0.004501819610595703
+rank #2: sending tag:  18
+rank #2: 0.003168344497680664
+rank #1: sending tag:  20
+rank #1: 0.0034253597259521484
+rank #0: sending tag:  22
+rank #0: 0.001249074935913086
+rank #3: sending tag:  18
+rank #3: 0.0030295848846435547
+rank #2: sending tag:  20
+rank #2: 0.004893302917480469
+rank #1: sending tag:  22
+rank #1: 0.004726409912109375
+rank #0: sending tag:  24
+rank #0: 0.0016074180603027344
+rank #3: sending tag:  20
+rank #3: 0.004388093948364258
+rank #2: sending tag:  22
+rank #2: 0.005541563034057617
+rank #1: sending tag:  24
+rank #1: 0.005263805389404297
+rank #0: sending tag:  26
+rank #0: 0.0011913776397705078
+rank #3: sending tag:  22
+rank #3: 0.004215717315673828
+rank #2: sending tag:  24
+rank #2: 0.0059833526611328125
+rank #1: sending tag:  26
+rank #1: 0.006481170654296875
+rank #0: sending tag:  28
+rank #0: 0.0023615360260009766
+rank #3: sending tag:  24
+rank #3: 0.004550933837890625
+rank #2: sending tag:  26
+rank #2: 0.006237983703613281
+rank #1: sending tag:  28
+rank #1: 0.005898714065551758
+rank #0: sending tag:  30
+rank #0: 0.0023713111877441406
+rank #3: sending tag:  26
+rank #3: 0.0044939517974853516
+rank #2: sending tag:  28
+rank #2: 0.0055353641510009766
+rank #1: sending tag:  30
+rank #1: 0.004877805709838867
+rank #0: sending tag:  32
+rank #0: 0.0009002685546875
+rank #3: sending tag:  28
+rank #3: 0.003329753875732422
+rank #2: sending tag:  30
+rank #2: 0.00501704216003418
+rank #1: sending tag:  32
+rank #1: 0.0052797794342041016
+rank #0: sending tag:  34
+rank #0: 0.002042055130004883
+rank #3: sending tag:  30
+rank #3: 0.0044596195220947266
+rank #2: sending tag:  32
+rank #2: 0.0059511661529541016
+rank #1: sending tag:  34
+rank #1: 0.0055348873138427734
+rank #0: sending tag:  36
+rank #0: 0.0018122196197509766
+rank #3: sending tag:  32
+rank #3: 0.004593610763549805
+rank #2: sending tag:  34
+rank #2: 0.005716085433959961
+rank #1: sending tag:  36
+rank #1: 0.005650043487548828
+rank #0: sending tag:  38
+rank #0: 0.001863241195678711
+rank #3: sending tag:  34
+rank #3: 0.0043752193450927734
+rank #2: sending tag:  36
+rank #2: 0.005980968475341797
+rank #1: sending tag:  38
+rank #1: 0.0060079097747802734
+rank #0: sending tag:  40
+rank #0: 0.0022614002227783203
+rank #3: sending tag:  36
+rank #3: 0.0048253536224365234
+rank #2: sending tag:  38
+rank #2: 0.006404399871826172
+rank #1: sending tag:  40
+rank #1: 0.006165027618408203
+rank #0: sending tag:  42
+rank #0: 0.0022554397583007812
+rank #3: sending tag:  38
+rank #3: 0.0040607452392578125
+rank #2: sending tag:  40
+rank #2: 0.005322694778442383
+rank #1: sending tag:  42
+rank #1: 0.0051229000091552734
+rank #0: sending tag:  44
+rank #0: 0.0010895729064941406
+rank #3: sending tag:  40
+rank #3: 0.0037255287170410156
+rank #2: sending tag:  42
+rank #2: 0.005936861038208008
+rank #1: sending tag:  44
+rank #1: 0.006391286849975586
+rank #0: sending tag:  46
+rank #0: 0.002538442611694336
+rank #3: sending tag:  42
+rank #3: 0.004879951477050781
+rank #2: sending tag:  44
+rank #2: 0.0063021183013916016
+rank #1: sending tag:  46
+rank #1: 0.006211280822753906
+rank #0: sending tag:  48
+rank #0: 0.0023908615112304688
+rank #3: sending tag:  44
+rank #3: 0.004390239715576172
+rank #2: sending tag:  46
+rank #2: 0.005395412445068359
+rank #1: sending tag:  48
+rank #1: 0.006226778030395508
+rank #0: sending tag:  50
+rank #0: 0.0025310516357421875
+rank #3: sending tag:  46
+rank #3: 0.004799842834472656
+rank #2: sending tag:  48
+rank #2: 0.006281375885009766
+rank #1: sending tag:  50
+rank #1: 0.006228923797607422
+rank #0: sending tag:  52
+rank #0: 0.002129793167114258
+rank #3: sending tag:  48
+rank #3: 0.003977298736572266
+rank #2: sending tag:  50
+rank #2: 0.004846334457397461
+rank #1: sending tag:  52
+rank #1: 0.004795074462890625
+rank #0: sending tag:  54
+rank #0: 0.0008256435394287109
+rank #3: sending tag:  50
+rank #3: 0.002633810043334961
+rank #2: sending tag:  52
+rank #2: 0.005344867706298828
+rank #1: sending tag:  54
+rank #1: 0.00601506233215332
+rank #0: sending tag:  56
+rank #0: 0.002680540084838867
+rank #3: sending tag:  52
+rank #3: 0.004642009735107422
+rank #2: sending tag:  54
+rank #2: 0.006220340728759766
+rank #1: sending tag:  56
+rank #1: 0.0062983036041259766
+rank #0: sending tag:  58
+rank #0: 0.002554655075073242
+rank #3: sending tag:  54
+rank #3: 0.004121541976928711
+rank #2: sending tag:  56
+rank #2: 0.005127906799316406
+rank #1: sending tag:  58
+rank #1: 0.0052642822265625
+rank #0: sending tag:  60
+rank #0: 0.0018389225006103516
+rank #3: sending tag:  56
+rank #3: 0.004427909851074219
+rank #2: sending tag:  58
+rank #2: 0.006030082702636719
+rank #1: sending tag:  60
+rank #1: 0.006235837936401367
+rank #0: sending tag:  62
+rank #0: 0.002641439437866211
+rank #3: sending tag:  58
+rank #3: 0.004980325698852539
+rank #2: sending tag:  60
+rank #2: 0.006429910659790039
+rank #1: sending tag:  62
+rank #1: 0.006138324737548828
+rank #0: sending tag:  64
+rank #0: 0.00247955322265625
+rank #3: sending tag:  60
+rank #3: 0.00572657585144043
+rank #2: sending tag:  62
+rank #2: 0.007130146026611328
+rank #1: sending tag:  64
+rank #1: 0.006789445877075195
+rank #0: sending tag:  66
+rank #0: 0.0020971298217773438
+rank #3: sending tag:  62
+rank #3: 0.004375934600830078
+rank #2: sending tag:  64
+rank #2: 0.0062749385833740234
+rank #1: sending tag:  66
+rank #1: 0.0064699649810791016
+rank #0: sending tag:  68
+rank #0: 0.002689838409423828
+rank #3: sending tag:  64
+rank #3: 0.004822731018066406
+rank #2: sending tag:  66
+rank #2: 0.00638890266418457
+rank #1: sending tag:  68
+rank #1: 0.006268739700317383
+rank #0: sending tag:  70
+rank #0: 0.0026733875274658203
+rank #3: sending tag:  66
+rank #3: 0.005053997039794922
+rank #2: sending tag:  68
+rank #2: 0.006441593170166016
+rank #1: sending tag:  70
+rank #1: 0.0064678192138671875
+rank #0: sending tag:  72
+rank #0: 0.0027773380279541016
+rank #3: sending tag:  68
+rank #3: 0.0046498775482177734
+rank #2: sending tag:  70
+rank #2: 0.006013154983520508
+rank #1: sending tag:  72
+rank #1: 0.005583047866821289
+rank #0: sending tag:  74
+rank #0: 0.0016388893127441406
+rank #3: sending tag:  70
+rank #3: 0.002864837646484375
+rank #2: sending tag:  72
+rank #2: 0.00447392463684082
+rank #1: sending tag:  74
+rank #1: 0.004340410232543945
+rank #0: sending tag:  76
+rank #0: 0.0010972023010253906
+rank #3: sending tag:  72
+rank #3: 0.0037915706634521484
+rank #2: sending tag:  74
+rank #2: 0.005746364593505859
+rank #1: sending tag:  76
+rank #1: 0.00630640983581543
+rank #0: sending tag:  78
+rank #0: 0.0025930404663085938
+rank #3: sending tag:  74
+rank #3: 0.004617452621459961
+rank #2: sending tag:  76
+rank #2: 0.006066322326660156
+rank #1: sending tag:  78
+rank #1: 0.005855083465576172
+rank #0: sending tag:  80
+rank #0: 0.0018515586853027344
+rank #3: sending tag:  76
+rank #3: 0.0045049190521240234
+rank #2: sending tag:  78
+rank #2: 0.0061528682708740234
+rank #1: sending tag:  80
+rank #1: 0.006447315216064453
+rank #0: sending tag:  82
+rank #0: 0.0018041133880615234
+rank #3: sending tag:  78
+rank #3: 0.004287004470825195
+rank #2: sending tag:  80
+rank #2: 0.00599217414855957
+rank #1: sending tag:  82
+rank #1: 0.006355762481689453
+rank #0: sending tag:  84
+rank #0: 0.0025594234466552734
+rank #3: sending tag:  80
+rank #3: 0.004514217376708984
+rank #2: sending tag:  82
+rank #2: 0.005932331085205078
+rank #1: sending tag:  84
+rank #1: 0.006112098693847656
+rank #0: sending tag:  86
+rank #0: 0.002649068832397461
+rank #3: sending tag:  82
+rank #3: 0.0061609745025634766
+rank #2: sending tag:  84
+rank #2: 0.007548093795776367
+rank #1: sending tag:  86
+rank #1: 0.0074765682220458984
+rank #0: sending tag:  88
+rank #0: 0.0024492740631103516
+rank #3: sending tag:  84
+rank #3: 0.0041806697845458984
+rank #2: sending tag:  86
+rank #2: 0.0055599212646484375
+rank #1: sending tag:  88
+rank #1: 0.0053937435150146484
+rank #0: sending tag:  90
+rank #0: 0.0019714832305908203
+rank #3: sending tag:  86
+rank #3: 0.004029989242553711
+rank #2: sending tag:  88
+rank #2: 0.005625724792480469
+rank #1: sending tag:  90
+rank #1: 0.00589299201965332
+rank #0: sending tag:  92
+rank #0: 0.0024194717407226562
+rank #3: sending tag:  88
+rank #3: 0.004395008087158203
+rank #2: sending tag:  90
+rank #2: 0.0062410831451416016
+rank #1: sending tag:  92
+rank #1: 0.0038030147552490234
+rank #0: sending tag:  94
+rank #0: 0.0027375221252441406
+rank #3: sending tag:  90
+rank #3: 0.0048367977142333984
+rank #2: sending tag:  92
+rank #2: 0.00619196891784668
+rank #1: sending tag:  94
+rank #1: 0.0034723281860351562
+rank #0: sending tag:  96
+rank #0: 0.002759695053100586
+rank #3: sending tag:  92
+rank #3: 0.004932880401611328
+rank #2: sending tag:  94
+rank #2: 0.0064373016357421875
+rank #1: sending tag:  96
+rank #1: 0.0037124156951904297
+rank #0: sending tag:  98
+rank #0: 0.0023717880249023438
+rank #3: sending tag:  94
+rank #3: 0.0047245025634765625
+rank #2: sending tag:  96
+rank #2: 0.0062444210052490234
+rank #1: sending tag:  98
+rank #1: 0.0037229061126708984
+rank #0: sending tag:  100
+rank #0: 0.002221822738647461
+rank #3: sending tag:  96
+rank #3: 0.00450897216796875
+rank #2: sending tag:  98
+rank #2: 0.005830526351928711
+rank #1: sending tag:  100
+rank #1: 0.0038139820098876953
+rank #0: sending tag:  102
+rank #0: 0.0025010108947753906
+rank #3: sending tag:  98
+rank #3: 0.00463557243347168
+rank #2: sending tag:  100
+rank #2: 0.006114006042480469
+rank #1: sending tag:  102
+rank #1: 0.0036344528198242188
+rank #0: sending tag:  104
+rank #0: 0.002669811248779297
+rank #3: sending tag:  100
+rank #3: 0.00432896614074707
+rank #2: sending tag:  102
+rank #2: 0.005877256393432617
+rank #1: sending tag:  104
+rank #1: 0.003398418426513672
+rank #0: sending tag:  106
+rank #0: 0.002757549285888672
+rank #3: sending tag:  102
+rank #3: 0.004631519317626953
+rank #2: sending tag:  104
+rank #2: 0.006148338317871094
+rank #1: sending tag:  106
+rank #1: 0.003450155258178711
+rank #0: sending tag:  108
+rank #0: 0.0024123191833496094
+rank #3: sending tag:  104
+rank #3: 0.0045702457427978516
+rank #2: sending tag:  106
+rank #2: 0.00616145133972168
+rank #1: sending tag:  108
+rank #1: 0.0035448074340820312
+rank #0: sending tag:  110
+rank #0: 0.0025043487548828125
+rank #3: sending tag:  106
+rank #3: 0.004518985748291016
+rank #2: sending tag:  108
+rank #2: 0.005806446075439453
+rank #1: sending tag:  110
+rank #1: 0.0027556419372558594
+rank #0: sending tag:  112
+rank #0: 0.0015189647674560547
+rank #3: sending tag:  108
+rank #3: 0.003878355026245117
+rank #2: sending tag:  110
+rank #2: 0.00572514533996582
+rank #1: sending tag:  112
+rank #1: 0.0036246776580810547
+rank #0: sending tag:  114
+rank #0: 0.002404928207397461
+rank #3: sending tag:  110
+rank #3: 0.0050220489501953125
+rank #2: sending tag:  112
+rank #2: 0.006266355514526367
+rank #1: sending tag:  114
+rank #1: 0.003915548324584961
+rank #0: sending tag:  116
+rank #0: 0.0028748512268066406
+rank #3: sending tag:  112
+rank #3: 0.004773855209350586
+rank #2: sending tag:  114
+rank #2: 0.006078958511352539
+rank #1: sending tag:  116
+rank #1: 0.0031490325927734375
+rank #0: sending tag:  118
+rank #0: 0.0017979145050048828
+rank #3: sending tag:  114
+rank #3: 0.004031181335449219
+rank #2: sending tag:  116
+rank #2: 0.005913972854614258
+rank #1: sending tag:  118
+rank #1: 0.0037157535552978516
+rank #0: sending tag:  120
+rank #0: 0.002743244171142578
+rank #3: sending tag:  116
+rank #3: 0.004590511322021484
+rank #2: sending tag:  118
+rank #2: 0.0060808658599853516
+rank #1: sending tag:  120
+rank #1: 0.003736257553100586
+rank #0: sending tag:  122
+rank #0: 0.0024526119232177734
+rank #3: sending tag:  118
+rank #3: 0.004480600357055664
+rank #2: sending tag:  120
+rank #2: 0.005949735641479492
+rank #1: sending tag:  122
+rank #1: 0.003568410873413086
+rank #0: sending tag:  124
+rank #0: 0.002508401870727539
+rank #3: sending tag:  120
+rank #3: 0.004576683044433594
+rank #2: sending tag:  122
+rank #2: 0.0062215328216552734
+rank #1: sending tag:  124
+rank #1: 0.002018451690673828
+rank #0: sending tag:  126
+rank #0: 0.0024080276489257812
+rank #3: sending tag:  122
+rank #3: 0.0045087337493896484
+rank #2: sending tag:  124
+rank #2: 0.006191253662109375
+rank #1: sending tag:  126
+rank #1: 0.0036249160766601562
+rank #0: sending tag:  128
+rank #0: 0.00257110595703125
+rank #3: sending tag:  124
+rank #3: 0.0047299861907958984
+rank #2: sending tag:  126
+rank #2: 0.0060901641845703125
+rank #1: sending tag:  128
+rank #1: 0.0034825801849365234
+rank #0: sending tag:  130
+rank #0: 0.002131223678588867
+rank #3: sending tag:  126
+rank #3: 0.004581451416015625
+rank #2: sending tag:  128
+rank #2: 0.005976200103759766
+rank #1: sending tag:  130
+rank #1: 0.0037207603454589844
+rank #0: sending tag:  132
+rank #0: 0.0028696060180664062
+rank #3: sending tag:  128
+rank #3: 0.005120277404785156
+rank #2: sending tag:  130
+rank #2: 0.0067806243896484375
+rank #1: sending tag:  132
+rank #1: 0.003721952438354492
+rank #0: sending tag:  134
+rank #0: 0.002523660659790039
+rank #3: sending tag:  130
+rank #3: 0.0044155120849609375
+rank #2: sending tag:  132
+rank #2: 0.0060024261474609375
+rank #1: sending tag:  134
+rank #1: 0.003616809844970703
+rank #0: sending tag:  136
+rank #0: 0.0024900436401367188
+rank #3: sending tag:  132
+rank #3: 0.00440216064453125
+rank #2: sending tag:  134
+rank #2: 0.0059435367584228516
+rank #1: sending tag:  136
+rank #1: 0.003475189208984375
+rank #0: sending tag:  138
+rank #0: 0.0022683143615722656
+rank #3: sending tag:  134
+rank #3: 0.0035066604614257812
+rank #2: sending tag:  136
+rank #2: 0.0046007633209228516
+rank #1: sending tag:  138
+rank #1: 0.002472400665283203
+rank #0: sending tag:  140
+rank #0: 0.0016393661499023438
+rank #3: sending tag:  136
+rank #3: 0.004392147064208984
+rank #2: sending tag:  138
+rank #2: 0.005746603012084961
+rank #1: sending tag:  140
+rank #1: 0.0028014183044433594
+rank #0: sending tag:  142
+rank #0: 0.001485586166381836
+rank #3: sending tag:  138
+rank #3: 0.004034519195556641
+rank #2: sending tag:  140
+rank #2: 0.0060346126556396484
+rank #1: sending tag:  142
+rank #1: 0.0036802291870117188
+rank #0: sending tag:  144
+rank #0: 0.002656698226928711
+rank #3: sending tag:  140
+rank #3: 0.004694938659667969
+rank #2: sending tag:  142
+rank #2: 0.0061800479888916016
+rank #1: sending tag:  144
+rank #1: 0.00377655029296875
+rank #0: sending tag:  146
+rank #0: 0.0023348331451416016
+rank #3: sending tag:  142
+rank #3: 0.004299163818359375
+rank #2: sending tag:  144
+rank #2: 0.005728960037231445
+rank #1: sending tag:  146
+rank #1: 0.0029761791229248047
+rank #0: sending tag:  148
+rank #0: 0.002094745635986328
+rank #3: sending tag:  144
+rank #3: 0.004004240036010742
+rank #2: sending tag:  146
+rank #2: 0.005543947219848633
+rank #1: sending tag:  148
+rank #1: 0.0035772323608398438
+rank #0: sending tag:  150
+rank #0: 0.0025331974029541016
+rank #3: sending tag:  146
+rank #3: 0.004540920257568359
+rank #2: sending tag:  148
+rank #2: 0.006242036819458008
+rank #1: sending tag:  150
+rank #1: 0.0036818981170654297
+rank #0: sending tag:  152
+rank #0: 0.002590656280517578
+rank #3: sending tag:  148
+rank #3: 0.004625082015991211
+rank #2: sending tag:  150
+rank #2: 0.005876302719116211
+rank #1: sending tag:  152
+rank #1: 0.0032210350036621094
+rank #0: sending tag:  154
+rank #0: 0.002353191375732422
+rank #3: sending tag:  150
+rank #3: 0.004644155502319336
+rank #2: sending tag:  152
+rank #2: 0.006041765213012695
+rank #1: sending tag:  154
+rank #1: 0.003222227096557617
+rank #0: sending tag:  156
+rank #0: 0.0018570423126220703
+rank #3: sending tag:  152
+rank #3: 0.004024505615234375
+rank #2: sending tag:  154
+rank #2: 0.005940675735473633
+rank #1: sending tag:  156
+rank #1: 0.003556966781616211
+rank #0: sending tag:  158
+rank #0: 0.002409696578979492
+rank #3: sending tag:  154
+rank #3: 0.005002260208129883
+rank #2: sending tag:  156
+rank #2: 0.006173133850097656
+rank #1: sending tag:  158
+rank #1: 0.003368377685546875
+rank #0: sending tag:  160
+rank #0: 0.0021147727966308594
+rank #3: sending tag:  156
+rank #3: 0.004175424575805664
+rank #2: sending tag:  158
+rank #2: 0.0059032440185546875
+rank #1: sending tag:  160
+rank #1: 0.003618478775024414
+rank #0: sending tag:  162
+rank #0: 0.002394437789916992
+rank #3: sending tag:  158
+rank #3: 0.004961729049682617
+rank #2: sending tag:  160
+rank #2: 0.00621342658996582
+rank #1: sending tag:  162
+rank #1: 0.003289461135864258
+rank #0: sending tag:  164
+rank #0: 0.0024394989013671875
+rank #3: sending tag:  160
+rank #3: 0.004895687103271484
+rank #2: sending tag:  162
+rank #2: 0.005980730056762695
+rank #1: sending tag:  164
+rank #1: 0.0034770965576171875
+rank #0: sending tag:  166
+rank #0: 0.0023233890533447266
+rank #3: sending tag:  162
+rank #3: 0.004639148712158203
+rank #2: sending tag:  164
+rank #2: 0.005724191665649414
+rank #1: sending tag:  166
+rank #1: 0.0029222965240478516
+rank #0: sending tag:  168
+rank #0: 0.0015647411346435547
+rank #3: sending tag:  164
+rank #3: 0.004206657409667969
+rank #2: sending tag:  166
+rank #2: 0.006204128265380859
+rank #1: sending tag:  168
+rank #1: 0.0035636425018310547
+rank #0: sending tag:  170
+rank #0: 0.0023272037506103516
+rank #3: sending tag:  166
+rank #3: 0.0045986175537109375
+rank #2: sending tag:  168
+rank #2: 0.0059583187103271484
+rank #1: sending tag:  170
+rank #1: 0.0031168460845947266
+rank #0: sending tag:  172
+rank #0: 0.0016961097717285156
+rank #3: sending tag:  168
+rank #3: 0.0038907527923583984
+rank #2: sending tag:  170
+rank #2: 0.005314350128173828
+rank #1: sending tag:  172
+rank #1: 0.002636432647705078
+rank #0: sending tag:  174
+rank #0: 0.0013344287872314453
+rank #3: sending tag:  170
+rank #3: 0.00455927848815918
+rank #2: sending tag:  172
+rank #2: 0.006529331207275391
+rank #1: sending tag:  174
+rank #1: 0.004324674606323242
+rank #0: sending tag:  176
+rank #0: 0.0016393661499023438
+rank #3: sending tag:  172
+rank #3: 0.004094839096069336
+rank #2: sending tag:  174
+rank #2: 0.005984783172607422
+rank #1: sending tag:  176
+rank #1: 0.003528594970703125
+rank #0: sending tag:  178
+rank #0: 0.0016217231750488281
+rank #3: sending tag:  174
+rank #3: 0.004138469696044922
+rank #2: sending tag:  176
+rank #2: 0.00617671012878418
+rank #1: sending tag:  178
+rank #1: 0.003644227981567383
+rank #0: sending tag:  180
+rank #0: 0.0021889209747314453
+rank #3: sending tag:  176
+rank #3: 0.00463104248046875
+rank #2: sending tag:  178
+rank #2: 0.0060923099517822266
+rank #1: sending tag:  180
+rank #1: 0.003281831741333008
+rank #0: sending tag:  182
+rank #0: 0.0017769336700439453
+rank #3: sending tag:  178
+rank #3: 0.0041887760162353516
+rank #2: sending tag:  180
+rank #2: 0.005554914474487305
+rank #1: sending tag:  182
+rank #1: 0.003452777862548828
+rank #0: sending tag:  184
+rank #0: 0.002305269241333008
+rank #3: sending tag:  180
+rank #3: 0.004601716995239258
+rank #2: sending tag:  182
+rank #2: 0.005730152130126953
+rank #1: sending tag:  184
+rank #1: 0.0029449462890625
+rank #0: sending tag:  186
+rank #0: 0.002266407012939453
+rank #3: sending tag:  182
+rank #3: 0.004330873489379883
+rank #2: sending tag:  184
+rank #2: 0.005606651306152344
+rank #1: sending tag:  186
+rank #1: 0.003889322280883789
+rank #0: sending tag:  188
+rank #0: 0.0013031959533691406
+rank #3: sending tag:  184
+rank #3: 0.0035970211029052734
+rank #2: sending tag:  186
+rank #2: 0.005674123764038086
+rank #1: sending tag:  188
+rank #1: 0.0059947967529296875
+rank #0: sending tag:  190
+rank #0: 0.0018093585968017578
+rank #3: sending tag:  186
+rank #3: 0.003838062286376953
+rank #2: sending tag:  188
+rank #2: 0.0056591033935546875
+rank #1: sending tag:  190
+rank #1: 0.006376504898071289
+rank #0: sending tag:  192
+rank #0: 0.002667665481567383
+rank #3: sending tag:  188
+rank #3: 0.00484013557434082
+rank #2: sending tag:  190
+rank #2: 0.005641937255859375
+rank #1: sending tag:  192
+rank #1: 0.0050237178802490234
+rank #0: sending tag:  194
+rank #0: 0.0010836124420166016
+rank #3: sending tag:  190
+rank #3: 0.0043239593505859375
+rank #2: sending tag:  192
+rank #2: 0.005743503570556641
+rank #1: sending tag:  194
+rank #1: 0.006880760192871094
+rank #0: sending tag:  196
+rank #0: 0.0024983882904052734
+rank #3: sending tag:  192
+rank #3: 0.004631757736206055
+rank #2: sending tag:  194
+rank #2: 0.006060361862182617
+rank #1: sending tag:  196
+rank #1: 0.006127357482910156
+rank #0: sending tag:  198
+rank #0: 0.002414703369140625
+rank #3: sending tag:  194
+rank #3: 0.0042171478271484375
+rank #2: sending tag:  196
+rank #2: 0.0050890445709228516
+rank #1: sending tag:  198
+rank #1: 0.004488468170166016
+rank #0: sending tag:  200
+rank #0: 0.000997304916381836
+rank #3: sending tag:  196
+rank #3: 0.002721071243286133
+rank #2: sending tag:  198
+rank #2: 0.004662990570068359
+rank #1: sending tag:  200
+rank #1: 0.005227088928222656
+rank #0: sending tag:  202
+rank #0: 0.0023910999298095703
+rank #3: sending tag:  198
+rank #3: 0.004751443862915039
+rank #2: sending tag:  200
+rank #2: 0.00604557991027832
+rank #1: sending tag:  202
+rank #1: 0.005856037139892578
+rank #0: sending tag:  204
+rank #0: 0.0023310184478759766
+rank #3: sending tag:  200
+rank #3: 0.004847526550292969
+rank #2: sending tag:  202
+rank #2: 0.006157398223876953
+rank #1: sending tag:  204
+rank #1: 0.006152629852294922
+rank #0: sending tag:  206
+rank #0: 0.002167224884033203
+rank #3: sending tag:  202
+rank #3: 0.004476308822631836
+rank #2: sending tag:  204
+rank #2: 0.006011486053466797
+rank #1: sending tag:  206
+rank #1: 0.00597834587097168
+rank #0: sending tag:  208
+rank #0: 0.0017445087432861328
+rank #3: sending tag:  204
+rank #3: 0.003478527069091797
+rank #2: sending tag:  206
+rank #2: 0.005482912063598633
+rank #1: sending tag:  208
+rank #1: 0.005881786346435547
+rank #0: sending tag:  210
+rank #0: 0.002447366714477539
+rank #3: sending tag:  206
+rank #3: 0.004395246505737305
+rank #2: sending tag:  208
+rank #2: 0.0060884952545166016
+rank #1: sending tag:  210
+rank #1: 0.005990028381347656
+rank #0: sending tag:  212
+rank #0: 0.0025992393493652344
+rank #3: sending tag:  208
+rank #3: 0.0043795108795166016
+rank #2: sending tag:  210
+rank #2: 0.005343437194824219
+rank #1: sending tag:  212
+rank #1: 0.0048635005950927734
+rank #0: sending tag:  214
+rank #0: 0.001058340072631836
+rank #3: sending tag:  210
+rank #3: 0.0033829212188720703
+rank #2: sending tag:  212
+rank #2: 0.0053904056549072266
+rank #1: sending tag:  214
+rank #1: 0.005906581878662109
+rank #0: sending tag:  216
+rank #0: 0.0021779537200927734
+rank #3: sending tag:  212
+rank #3: 0.0044476985931396484
+rank #2: sending tag:  214
+rank #2: 0.005864620208740234
+rank #1: sending tag:  216
+rank #1: 0.006285190582275391
+rank #0: sending tag:  218
+rank #0: 0.0025501251220703125
+rank #3: sending tag:  214
+rank #3: 0.0046710968017578125
+rank #2: sending tag:  216
+rank #2: 0.006265163421630859
+rank #1: sending tag:  218
+rank #1: 0.006389141082763672
+rank #0: sending tag:  220
+rank #0: 0.0025615692138671875
+rank #3: sending tag:  216
+rank #3: 0.00418853759765625
+rank #2: sending tag:  218
+rank #2: 0.0055773258209228516
+rank #1: sending tag:  220
+rank #1: 0.00518798828125
+rank #0: sending tag:  222
+rank #0: 0.0015065670013427734
+rank #3: sending tag:  218
+rank #3: 0.004114627838134766
+rank #2: sending tag:  220
+rank #2: 0.006170988082885742
+rank #1: sending tag:  222
+rank #1: 0.006457328796386719
+rank #0: sending tag:  224
+rank #0: 0.0025811195373535156
+rank #3: sending tag:  220
+rank #3: 0.004860639572143555
+rank #2: sending tag:  222
+rank #2: 0.0063934326171875
+rank #1: sending tag:  224
+rank #1: 0.006336212158203125
+rank #0: sending tag:  226
+rank #0: 0.002134084701538086
+rank #3: sending tag:  222
+rank #3: 0.004362821578979492
+rank #2: sending tag:  224
+rank #2: 0.0058345794677734375
+rank #1: sending tag:  226
+rank #1: 0.00619959831237793
+rank #0: sending tag:  228
+rank #0: 0.0019021034240722656
+rank #3: sending tag:  224
+rank #3: 0.0039577484130859375
+rank #2: sending tag:  226
+rank #2: 0.00557398796081543
+rank #1: sending tag:  228
+rank #1: 0.005274295806884766
+rank #0: sending tag:  230
+rank #0: 0.0019435882568359375
+rank #3: sending tag:  226
+rank #3: 0.0036551952362060547
+rank #2: sending tag:  228
+rank #2: 0.005223512649536133
+rank #1: sending tag:  230
+rank #1: 0.0054492950439453125
+rank #0: sending tag:  232
+rank #0: 0.0015869140625
+rank #3: sending tag:  228
+rank #3: 0.003309011459350586
+rank #2: sending tag:  230
+rank #2: 0.005233287811279297
+rank #1: sending tag:  232
+rank #1: 0.005894899368286133
+rank #0: sending tag:  234
+rank #0: 0.0024275779724121094
+rank #3: sending tag:  230
+rank #3: 0.004168987274169922
+rank #2: sending tag:  232
+rank #2: 0.005563020706176758
+rank #1: sending tag:  234
+rank #1: 0.0059621334075927734
+rank #0: sending tag:  236
+rank #0: 0.0027091503143310547
+rank #3: sending tag:  232
+rank #3: 0.004592418670654297
+rank #2: sending tag:  234
+rank #2: 0.006155490875244141
+rank #1: sending tag:  236
+rank #1: 0.006081581115722656
+rank #0: sending tag:  238
+rank #0: 0.002198934555053711
+rank #3: sending tag:  234
+rank #3: 0.0025246143341064453
+rank #2: sending tag:  236
+rank #2: 0.0037457942962646484
+rank #1: sending tag:  238
+rank #1: 0.0033669471740722656
+rank #0: sending tag:  240
+rank #0: 0.0010857582092285156
+rank #3: sending tag:  236
+rank #3: 0.0007188320159912109
+rank #2: sending tag:  238
+rank #2: 0.0022003650665283203
+rank #1: sending tag:  240
+rank #1: 0.0020818710327148438
+rank #0: sending tag:  242
+rank #0: 0.0008130073547363281
+rank #3: sending tag:  238
+rank #3: 0.00025582313537597656
+rank #2: sending tag:  240
+rank #2: 0.0018849372863769531
+rank #1: sending tag:  242
+rank #1: 0.0017824172973632812
+rank #0: sending tag:  244
+rank #0: 0.0008547306060791016
+rank #3: sending tag:  240
+rank #3: 0.0002231597900390625
+rank #2: sending tag:  242
+rank #2: 0.0016312599182128906
+rank #1: sending tag:  244
+rank #1: 0.0016565322875976562
+rank #0: sending tag:  246
+rank #0: 0.000965118408203125
+rank #3: sending tag:  242
+rank #3: 0.0002295970916748047
+rank #2: sending tag:  244
+rank #2: 0.0018422603607177734
+rank #1: sending tag:  246
+rank #1: 0.0018150806427001953
+rank #0: sending tag:  248
+rank #0: 0.0008451938629150391
+rank #3: sending tag:  244
+rank #3: 0.0003628730773925781
+rank #2: sending tag:  246
+rank #2: 0.0019383430480957031
+rank #1: sending tag:  248
+rank #1: 0.0018768310546875
+rank #0: sending tag:  250
+rank #0: 0.0007596015930175781
+rank #3: sending tag:  246
+rank #3: 0.00030875205993652344
+rank #2: sending tag:  248
+rank #2: 0.0019621849060058594
+rank #1: sending tag:  250
+rank #1: 0.002082347869873047
+rank #0: sending tag:  252
+rank #0: 0.0008809566497802734
+rank #3: sending tag:  248
+rank #3: 0.00015974044799804688
+rank #2: sending tag:  250
+rank #2: 0.00197601318359375
+rank #1: sending tag:  252
+rank #1: 0.0019974708557128906
+rank #0: sending tag:  254
+rank #0: 0.0006515979766845703
+rank #2: sending tag:  252
+rank #2: 0.001547098159790039
+rank #1: sending tag:  254
+rank #1: 0.0015263557434082031
+rank #0: sending tag:  256
+rank #0: 0.0012714862823486328
+rank #2: sending tag:  254
+rank #2: 0.0015914440155029297
+rank #1: sending tag:  256
+rank #1: 0.0016477108001708984
+rank #2: sending tag:  256
+rank #2: 0.0017871856689453125
+rank #3: out of range integral type conversion attempted

@@ -149,14 +149,12 @@ def download_opt_weights_old(model_name, path):
     print(f"Load the pre-trained pytorch weights of {model_name} from huggingface. "
           f"The downloading and cpu loading can take dozens of minutes. "
           f"If it seems to get stuck, you can monitor the progress by "
-          f"checking the memory usage of this process.")
+          f"checking the memory usage of this process....")
 
     disable_torch_init()
-    # hf_model_name = "/workspace/sparse-gpt/facebook-opt-13B"
+    hf_model_name = "/workspace/flexgen/facebook-opt-13B"
     # hf_model_name = "/workspace/flexgen/facebook-6.7b"
-    hf_model_name = "/workspace/sparse-gpt/facebook-opt-1.3B"
-
-    print("model: ", hf_model_name)
+    # hf_model_name = "/workspace/flexgen/facebook-opt-1.3B"
 
     model = model_class.from_pretrained(hf_model_name, torch_dtype=torch.float16,
                                         _fast_init=True)
@@ -236,11 +234,12 @@ def download_opt_weights(model_name, path):
     elif "galactica" in model_name:
         hf_model_name = "facebook/" + model_name
 
-    folder = "/workspace/sparse-gpt/facebook-opt-1.3B"
-    # folder = "/workspace/sparse-gpt/facebook-opt-13B"
+    # folder = snapshot_download(hf_model_name, allow_patterns="*.bin")
+
+    # folder = "/workspace/flexgen/facebook-opt-1.3B"
+    folder = "/workspace/flexgen/facebook-opt-13B"
     # folder = "/workspace/flexgen/facebook-6.7b"
 
-    folder = snapshot_download(hf_model_name, allow_patterns="*.bin")
     bin_files = glob.glob(os.path.join(folder, "*.bin"))
 
     if "/" in model_name:
@@ -249,6 +248,7 @@ def download_opt_weights(model_name, path):
     path = os.path.abspath(os.path.expanduser(path))
     os.makedirs(path, exist_ok=True)
 
+    # Convert format
     for bin_file in tqdm(bin_files, desc="Convert format"):
         state = torch.load(bin_file)
         for name, param in tqdm(state.items(), leave=False):

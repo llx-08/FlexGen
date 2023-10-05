@@ -40,19 +40,19 @@ def profile_bandwidth(path):
     for (dst, src) in links:
         for b in [1, 128, 512]:
             if dst == "cpu":
-                dst_tensor = torch.ones((b, s, h), dtype=torch.int8, pin_memory=True)
+                dst_tensor = torch.ones((b, s, h), dtype=torch.float16, pin_memory=True)
             elif dst == "gpu":
-                dst_tensor = torch.ones((b, s, h), dtype=torch.int8, device="cuda:0")
+                dst_tensor = torch.ones((b, s, h), dtype=torch.float16, device="cuda:0")
             elif dst == "disk":
-                np.lib.format.open_memmap(path, mode="w+", shape=((b,s,h)), dtype=np.int8)
+                np.lib.format.open_memmap(path, mode="w+", shape=((b,s,h)), dtype=np.float16)
                 dst_tensor = path
 
             if src == "cpu":
-                src_tensor = torch.ones((b, s, h), dtype=torch.int8, pin_memory=True)
+                src_tensor = torch.ones((b, s, h), dtype=torch.float16, pin_memory=True)
             elif src == "gpu":
-                src_tensor = torch.ones((b, s, h), dtype=torch.int8, device="cuda:0")
+                src_tensor = torch.ones((b, s, h), dtype=torch.float16, device="cuda:1")
             elif src == "disk":
-                np.lib.format.open_memmap(path, mode="w+", shape=((b,s,h)), dtype=np.int8)
+                np.lib.format.open_memmap(path, mode="w+", shape=((b,s,h)), dtype=np.float16)
                 src_tensor = path
 
             dst_indices = (slice(0, b), slice(0, s), slice(0, h))
@@ -73,7 +73,7 @@ def profile_bandwidth(path):
             cost = np.mean(benchmark_func(func, number=5, repeat=3))
             bandwidth = size / cost / GB
 
-            print(f"size: {size / MB:6.2f} MB, {src}-to-{dst} bandwidth: {bandwidth:.3f} GB/s")
+            print(f"size: {size / MB:6.2f} MB, {src}-to-{dst} bandwidth: {bandwidth:.3f} GB/s cost: {cost:.6f} s")
         print()
 
 

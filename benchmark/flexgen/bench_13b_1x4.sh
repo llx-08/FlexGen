@@ -22,12 +22,14 @@ mpirun \
     --head-ip $MY_IPADDR \
     --port 7777 \
     --use-mpi \
-    --model facebook/opt-6.7b \
-    --gpu-batch-size 6 \
-    --num-gpu-batches 8 \
+    --model facebook/opt-13b \
+    --gpu-batch-size 12 \
+    --num-gpu-batches 1 \
     --percent 100 0 100 0 100 0 \
     --comm-device cpu \
-#    --cut-gen-len 10   \
-#    --path _DUMMY_
+    --overlap False \
+    --compress-weight \
+    --compress-cache \
+    --compress-hidden \
 
-
+#    --async-comm \

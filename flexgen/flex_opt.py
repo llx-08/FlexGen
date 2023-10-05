@@ -36,8 +36,8 @@ class Policy:
     gpu_batch_size: int
     num_gpu_batches: int
 
-    # percent = a means a%
-    """
+    # percent = a means a%`
+    """`
     the percentage of weight on GPU, 
     the percentage of weight on CPU, 
     the percentage of attention cache on GPU, 
@@ -74,6 +74,10 @@ class Policy:
     # Compress KV cache with group-wise quantization
     compress_cache: bool
     comp_cache_config: CompressionConfig
+
+    # Compress hidden/activation with group-wise quantization
+    compress_hidden: bool
+    comp_hidden_config: CompressionConfig
 
     @property
     def w_disk_percent(self):
@@ -176,6 +180,14 @@ class InputEmbed:
 
     def load_weight(self, weight_home, weight_read_buf, k):
         w_token, w_pos = weight_home.val
+        # print(type(w_pos.data))
+        # print(type(w_token.data))
+        # print(w_pos.data[0].dtype)
+        # print(w_pos.data[1].dtype)
+        #
+        # print(w_token.data[0].dtype)
+        # print(w_token.data[1].dtype)
+
         if k == 0:
             dst = self.weight_load_dst
             weight_read_buf.store((w_token.smart_copy(dst), w_pos.smart_copy(dst)))
@@ -197,6 +209,9 @@ class InputEmbed:
         # Compute input embedding
         donate = [False] * 4
         h, donate[0] = hidden.val, True
+
+
+
         mask, donate[1] = attention_mask.val.smart_copy(self.compute)
 
         if k == self.policy.num_gpu_batches - 1:
@@ -275,7 +290,7 @@ class OutputEmbed:
                                           self.task.do_sample, self.task.temperature)
         hidden.val = h
 
-
+# kv cache 只参与这部分运算
 class SelfAttention:
     def __init__(self, config, env, policy, layer_id):
         self.config = config
@@ -475,6 +490,10 @@ class SelfAttention:
 
         hidden.val = h
 
+        print("attn forward")
+        print(h)
+        print(type(hidden))
+
 
 class MLP:
     def __init__(self, config, env, policy, layer_id):
@@ -547,6 +566,11 @@ class MLP:
              (w_ln, _), (b_ln, _)) = weight_read_buf.val
 
         h = self.compute.mlp(h, wi, bi, wo, bo, w_ln, b_ln, donate)
+
+        print("mlp forward")
+        print(h.data.shape)
+        print(type(hidden))
+
         hidden.val = h
 
 
@@ -586,6 +610,10 @@ class TransformerLayer:
 
     def forward(self, hidden, cache_read_buf, weight_read_buf, attention_mask,
                 cache_write_buf, i, k):
+
+        print("hidden in transformer block forward")
+        print(type(hidden))
+
         if k == self.policy.num_gpu_batches - 1:
             read_buf1, read_buf2 = weight_read_buf.pop()
         else:
@@ -757,19 +785,49 @@ class OptLM:
 
         # Load to hidden states buffers
         dst = self.layers[j].compute
-        if j == 0:
-            gpu_batch_size = self.policy.gpu_batch_size
-            left, right = k * gpu_batch_size, (k + 1) * gpu_batch_size
-            if i == 0:  # load from the input ids
-                val = dst.allocate((gpu_batch_size, self.task.prompt_len), np.int32)
-                val.load_from_np(self.output_ids[left:right, :self.task.prompt_len])
-            else:  # load from the last generated token
-                pos = self.task.prompt_len + i
-                val = dst.allocate((gpu_batch_size, 1), np.int32)
-                val.load_from_np(self.output_ids[left:right, pos - 1:pos])
-        else:  # load from the last layer
-            val = self.hidden[i][j - 1][k].pop().move(dst)
-        self.hidden[i][j][k].store(val)
+
+        print("check hidden")
+        print(self.policy.compress_hidden)
+
+        if self.policy.compress_hidden:
+            print("compress hidden")
+
+            if j == 0:
+                gpu_batch_size = self.policy.gpu_batch_size
+                left, right = k * gpu_batch_size, (k + 1) * gpu_batch_size
+                if i == 0:  # load from the input ids
+                    val = dst.compressd_device.allocate((gpu_batch_size, self.task.prompt_len), np.int32)
+                    # val = dst.allocate((gpu_batch_size, self.task.prompt_len), np.int32)
+                    val.load_from_np(self.output_ids[left:right, :self.task.prompt_len])
+                else:  # load from the last generated token
+                    pos = self.task.prompt_len + i
+                    val = dst.compressd_device.allocate((gpu_batch_size, 1), np.int32)
+                    val.load_from_np(self.output_ids[left:right, pos - 1:pos])
+            else:  # load from the last layer
+                val = self.hidden[i][j - 1][k].pop().move(dst)
+
+            print("load hidden val: ")
+            print(val)
+
+            self.hidden[i][j][k].store(val)
+
+        else:
+            if j == 0:
+                gpu_batch_size = self.policy.gpu_batch_size
+                left, right = k * gpu_batch_size, (k + 1) * gpu_batch_size
+                if i == 0:  # load from the input ids
+                    val = dst.allocate((gpu_batch_size, self.task.prompt_len), np.int32)
+                    val.load_from_np(self.output_ids[left:right, :self.task.prompt_len])
+                else:  # load from the last generated token
+                    pos = self.task.prompt_len + i
+                    val = dst.allocate((gpu_batch_size, 1), np.int32)
+                    val.load_from_np(self.output_ids[left:right, pos - 1:pos])
+            else:  # load from the last layer
+                val = self.hidden[i][j - 1][k].pop().move(dst)
+
+            print("load hidden val: ")
+            print(val)
+            self.hidden[i][j][k].store(val)
 
     def store_hidden(self, i, j, k):
         # Handle corner cases
@@ -1295,6 +1353,9 @@ def get_filename(args):
         filename += "-compw"
     if args.compress_cache:
         filename += "-compc"
+
+    if args.compress_hidden:
+        filename += "-compa"
     return filename
 
 
@@ -1335,7 +1396,13 @@ def run_flexgen(args):
                                       group_dim=0, symmetric=False),
                     args.compress_cache,
                     CompressionConfig(num_bits=4, group_size=64,
+                                      group_dim=2, symmetric=False),
+
+                    # modified
+                    args.compress_hidden,
+                    CompressionConfig(num_bits=4, group_size=64,
                                       group_dim=2, symmetric=False))
+
     assert not (args.compress_cache and args.attn_sparsity < 1.0), "Not implemented"
 
     # Calculate the size of each part would use: model weight size; cache size; hidden size;
@@ -1439,6 +1506,9 @@ def add_parser_arguments(parser):
     parser.add_argument("--compress-cache", action="store_true",
                         help="Whether to compress cache.")
 
+    parser.add_argument("--compress-hidden", action="store_true",
+                        help="Whether to compress hidden.")
+
     parser.add_argument("--log-file", type=str, default="auto")
     parser.add_argument("--no-log", action="store_true")
     parser.add_argument("--verbose", type=int, default=2)
@@ -1455,3 +1525,5 @@ if __name__ == "__main__":
     assert len(args.percent) == 6
 
     run_flexgen(args)
+
+

@@ -186,7 +186,12 @@ def execute(scenario_state, tokenizer, effective_bs, pad_to_seq_len):
                     compress_cache=args.compress_cache,
                     comp_cache_config=CompressionConfig(
                         num_bits=4, group_size=64,
-                        group_dim=2, symmetric=False))
+                        group_dim=2, symmetric=False),
+                    compress_hidden=args.compress_cache,
+                    comp_hidden_config=CompressionConfig(
+                        num_bits=4, group_size=64,
+                        group_dim=2, symmetric=False)
+                    )
 
     print(f"Init weights begin.")
     tic = time.time()
